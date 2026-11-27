@@ -101,6 +101,9 @@ public class AppSettings
     /// <summary>启动后自动加入橙猫生存服务器（默认开启）。</summary>
     public bool AutoJoinServer { get; set; } = true;
 
+    /// <summary>累计成功启动游戏的次数（用于买正版劝导提醒）。</summary>
+    public int LaunchCount { get; set; }
+
     // ===== 游戏进程设置 =====
 
     /// <summary>游戏进程优先级："普通" / "高" / "低" / "最高" / "最低"。</summary>

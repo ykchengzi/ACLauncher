@@ -37,6 +37,20 @@ public class SettingsService
         }
     }
 
+    /// <summary>保存设置（同步；用于启动计数这类必须在退出前落盘的小改动）。</summary>
+    public void Save(AppSettings settings)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(settings, JsonOptions);
+            File.WriteAllText(SettingsPath, json);
+        }
+        catch (Exception ex)
+        {
+            LogService.Instance.Log($"保存设置失败：{ex.Message}");
+        }
+    }
+
     /// <summary>保存设置。</summary>
     public async Task SaveAsync(AppSettings settings)
     {

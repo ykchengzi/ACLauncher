@@ -30,6 +30,9 @@ public class MainViewModel : ViewModelBase
     /// <summary>请求导航到其他页面的回调（由 MainWindow 订阅：主页按钮跳转版本相关页面）。</summary>
     public event Action<string>? NavigateRequested;
 
+    /// <summary>累计启动次数命中提醒节点时触发（参数为累计次数）。</summary>
+    public event Action<int>? LaunchMilestoneReached;
+
     /// <summary>当前配置锁定的游戏版本（只读展示，来自 config.json）。</summary>
     public string GameVersion
     {
@@ -546,6 +549,14 @@ public class MainViewModel : ViewModelBase
             if (started)
             {
                 Status = previousStatus;
+
+                // 累计启动次数：命中提醒节点时通知界面弹窗（内容随次数变化）
+                var (count, milestone) = LaunchCounterService.RegisterLaunch();
+                if (milestone is int hit)
+                {
+                    LogService.Instance.Log($"累计启动 {count} 次，显示购买正版提醒。");
+                    LaunchMilestoneReached?.Invoke(hit);
+                }
             }
         }
         catch (Exception ex)

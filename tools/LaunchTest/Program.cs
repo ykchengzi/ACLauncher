@@ -249,6 +249,17 @@ try
         Console.WriteLine($"VERSIONS {pid}: {versions.Count} 个");
         foreach (var v in versions.Take(3)) Console.WriteLine($"  {v.Display}");
     }
+    else if (cmd == "count")
+    {
+        // 启动次数与买正版提醒节点：count <次数>（在 harness 自己的 settings.json 上累加）
+        var times = args.Length > 1 ? int.Parse(args[1]) : 1;
+        Console.WriteLine($"SETTINGS {SettingsService.Instance.SettingsPath}");
+        for (var i = 0; i < times; i++)
+        {
+            var (count, milestone) = LaunchCounterService.RegisterLaunch();
+            Console.WriteLine($"LAUNCH {count} milestone={(milestone?.ToString() ?? "-")}");
+        }
+    }
     else if (cmd == "status")
     {
         // 服务器在线状态检测（主页服务器卡的底层服务）
