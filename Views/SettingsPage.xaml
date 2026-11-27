@@ -130,21 +130,6 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ===== 微软登录 ===== -->
-                <Border Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="微软登录" Style="{ThemeResource SubtitleTextBlockStyle}" />
-                        <TextBox Header="自定义客户端 ID（可选）"
-                                 PlaceholderText="留空使用内置公共客户端 ID"
-                                 Text="{x:Bind ViewModel.MicrosoftClientId, Mode=TwoWay}"
-                                 HorizontalAlignment="Stretch" />
-                        <TextBlock Text="留空时授权页显示为公共启动器应用（Prism Launcher）。填入自己在 Azure 注册的应用客户端 ID 后，授权页会显示你的应用名称；教程见项目文档。"
-                                   TextWrapping="Wrap"
-                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
-                </Border>
-
                 <!-- ===== 外观 ===== -->
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="14">

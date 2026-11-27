@@ -106,13 +106,6 @@ public class AppSettings
     /// <summary>游戏进程优先级："普通" / "高" / "低" / "最高" / "最低"。</summary>
     public string GamePriority { get; set; } = "普通";
 
-    /// <summary>
-    /// 自定义 Microsoft Azure 应用 Client ID（可选）。
-    /// 留空时使用内置默认值（Prism Launcher 公开的客户端 ID，可直接用于 Minecraft 登录）。
-    /// 高级用户可注册自己的 Azure 应用后填入，替换默认值。
-    /// </summary>
-    public string MicrosoftClientId { get; set; } = "";
-
     /// <summary>当前生效的 Java 路径（手动配置优先）。</summary>
     [JsonIgnore]
     public string? EffectiveJavaPath =>

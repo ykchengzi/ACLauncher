@@ -122,15 +122,6 @@ public class SettingsViewModel : ViewModelBase
         set { if (SetProperty(ref _gamePriority, value)) ScheduleAutoSave(); }
     }
 
-    private string _microsoftClientId = "";
-
-    /// <summary>自定义 Microsoft 登录客户端 ID（留空使用内置公共 ID）。</summary>
-    public string MicrosoftClientId
-    {
-        get => _microsoftClientId;
-        set { if (SetProperty(ref _microsoftClientId, value)) ScheduleAutoSave(); }
-    }
-
     private bool _versionIsolation;
 
     /// <summary>版本隔离：每个版本使用独立的游戏目录（世界 / 服务器列表等互不互通）。</summary>
@@ -193,7 +184,6 @@ public class SettingsViewModel : ViewModelBase
             GamePriority = settings.GamePriority;
             VersionIsolation = settings.VersionIsolation;
             AutoJoinServer = settings.AutoJoinServer;
-            MicrosoftClientId = settings.MicrosoftClientId;
         }
         finally
         {
@@ -241,7 +231,6 @@ public class SettingsViewModel : ViewModelBase
             settings.GamePriority = GamePriority;
             settings.VersionIsolation = VersionIsolation;
             settings.AutoJoinServer = AutoJoinServer;
-            settings.MicrosoftClientId = (MicrosoftClientId ?? "").Trim();
 
             await _settingsService.SaveAsync(settings);
             App.ApplyTheme(Theme);

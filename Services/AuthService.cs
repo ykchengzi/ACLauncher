@@ -21,27 +21,12 @@ public class AuthService
     public static AuthService Instance { get; } = new();
 
     // =====================================================================
-    // Microsoft OAuth Client ID：
-    //   - 默认使用 Prism Launcher 公开注册的客户端 ID（GitHub 开源仓库
-    //     PrismLauncher/PrismLauncher CMakeLists.txt，已获得微软/Mojang 授权，
-    //     可直接完成 Minecraft Java 版登录，实测设备码端点可用）。
-    //   - 高级用户可在"设置"页填写自己的 Azure 应用 Client ID 覆盖默认值：
-    //     1. 打开 https://portal.azure.com → "Microsoft Entra ID" → "应用注册"；
-    //     2. 新建注册：受支持的账户类型选 "个人 Microsoft 账户"；
-    //     3. 平台配置：添加 "移动和桌面应用程序"，重定向 URI 填 http://localhost；
-    //     4. 记下 "应用程序(客户端) ID"，填入设置页。
+    // Microsoft OAuth Client ID：使用 Prism Launcher 公开注册的客户端 ID
+    //   （GitHub 开源仓库 PrismLauncher/PrismLauncher CMakeLists.txt，
+    //     已获得微软/Mojang 授权，可直接完成 Minecraft Java 版登录，
+    //     实测设备码端点可用）。因此授权页显示的应用名为 Prism Launcher。
     // =====================================================================
-    private const string DefaultClientId = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb";
-
-    /// <summary>生效的 Client ID：设置中配置了非空值则优先，否则用内置默认值。</summary>
-    private static string EffectiveClientId
-    {
-        get
-        {
-            var custom = SettingsService.Instance.Load().MicrosoftClientId;
-            return string.IsNullOrWhiteSpace(custom) ? DefaultClientId : custom.Trim();
-        }
-    }
+    private const string ClientId = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb";
 
     private static readonly HttpClient Http = new()
     {
@@ -101,7 +86,7 @@ public class AuthService
     /// <param name="ct">取消令牌（用户在 UI 上取消时触发）。</param>
     public async Task<Account> LoginMicrosoftAsync(Action<string> onDeviceCode, CancellationToken ct)
     {
-        var clientId = EffectiveClientId;
+        var clientId = ClientId;
 
         // ---------- 1. 申请设备码 ----------
         var deviceForm = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -218,7 +203,7 @@ public class AuthService
         var refreshForm = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["grant_type"] = "refresh_token",
-            ["client_id"] = EffectiveClientId,
+            ["client_id"] = ClientId,
             ["refresh_token"] = account.RefreshToken,
             ["scope"] = "XboxLive.signin offline_access",
         });

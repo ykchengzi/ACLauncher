@@ -79,15 +79,9 @@ dotnet build ACLauncher.csproj -c Release
 
 ### 1. Microsoft 正版登录
 
-`Services/AuthService.cs` 顶部的 `ClientId` 常量默认是全 0 占位符。
-使用正版登录前，请先在 [Azure 门户](https://portal.azure.com) 注册应用：
-
-1. "Microsoft Entra ID" → "应用注册" → "新注册"；
-2. 受支持的账户类型：**个人 Microsoft 账户**；
-3. 平台配置 → 添加 **"移动和桌面应用程序"**，重定向 URI 填 `http://localhost`；
-4. 将"应用程序(客户端) ID"填入 `ClientId` 常量。
-
-未配置 Client ID 时，点击"添加 Microsoft 账户"会给出中文提示，不影响离线模式。
+启动器内置了公开注册的 Minecraft 客户端 ID（沿用 Prism Launcher 公开的
+应用注册），点击"添加 Microsoft 账户"即可走设备码登录，无需任何配置。
+因此微软授权页显示的应用名称为 **Prism Launcher**，这是正常现象。
 
 ### 2. Java 环境
 
