@@ -30,8 +30,18 @@ ACLauncher 第三方组件与许可声明
    版权：Mojang Studios
    说明：启动器内置 9 款默认皮肤（Steve / Alex / Ari / Efe / Kai / Makena / Noor / Sunny / Zuri）
    的头部图片，仅用于在启动器内为离线账户显示头像。
+   注意：该素材版权归 Mojang Studios，不随本项目的 GPL-3.0 许可授予任何权利。
 
 6. Microsoft 登录（OAuth 设备码）
-   说明：默认使用的客户端 ID 为公开的 Minecraft 启动器公共应用标识，因此微软授权页会显示
-   对应应用名称。你可以在「设置 → 微软登录」中填入自己注册的 Azure 应用客户端 ID，
-   授权页就会显示你的应用名称。客户端 ID 不属于可版权化的代码。
+   说明：使用公开注册的 Minecraft 启动器公共应用标识作为客户端 ID，因此微软授权页会显示
+   对应的应用名称（Prism Launcher）。客户端 ID 不属于可版权化的代码。
+
+--------------------------------------------------------------------------
+
+本项目的许可
+   ACLauncher 源代码采用 GNU General Public License v3.0 或更高版本（GPL-3.0-or-later）授权，
+   全文见安装目录或仓库根目录的 LICENSE 文件。
+   完整源代码：https://github.com/ykchengzi/aclc
+   「ACLauncher」「橙猫生存服务器」名称与应用图标不作为商标授权，
+   基于本项目代码的分支不得暗示自己由橙猫生存服务器官方发布。
+

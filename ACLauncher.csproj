@@ -62,6 +62,8 @@
       <Content Include="Resources\Skins\*.png" Link="Skins\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
       <!-- 第三方许可声明（7-Zip / java_launch_wrapper 等） -->
       <Content Include="licenses\*.txt" Link="licenses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <!-- 本项目许可证（GPL-3.0）：分发二进制时需随附许可全文 -->
+      <Content Include="LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@
 采用 MVVM 架构，支持微软正版、离线、外置（Yggdrasil）三种登录方式，
 并内置版本安装、模组与整合包下载等完整功能。
 
-当前版本：**v0.99.3-beta（内测版）** · 平台：Windows 10 1809 及以上（x64） · 界面语言：简体中文
+当前版本：**v0.99.3-beta（内测版）** · 平台：Windows 10 1809 及以上（x64） · 界面语言：简体中文 · 许可：GPL-3.0-or-later
 
 ---
 
@@ -172,10 +172,22 @@ ACLauncher/
 - 安装包由 **Inno Setup 7** 生成
 - 网络层统一使用 `SocketsHttpHandler` + **IPv4 优先建连**，规避 IPv6 不可达导致的长超时
 
-## 许可与致谢
+## 许可
 
-- 第三方组件及其许可（7-Zip、Java Launch Wrapper、Windows App SDK、.NET 等）见
-  [`licenses/THIRD-PARTY-NOTICES.txt`](licenses/THIRD-PARTY-NOTICES.txt)。
+本项目源代码采用 **GNU General Public License v3.0 或更高版本（GPL-3.0-or-later）** 授权，
+全文见 [`LICENSE`](LICENSE)。你可以自由使用、修改和再分发，但分发修改后的版本时必须同样开源。
+
+### 不在许可范围内的内容
+
+- **图像素材**：`Resources/Skins/` 下的 Steve / Alex / Ari / Efe / Kai / Makena / Noor / Sunny / Zuri
+  皮肤头部为 **Mojang Studios 的版权素材**，随包分发仅用于离线账户头像，不随本项目的许可证授予任何权利。
+- **名称与标识**：「ACLauncher」「橙猫生存服务器」名称及 `Resources/ACLauncher.ico` 图标不作为商标授权；
+  基于本项目代码的分支不得暗示自己由橙猫生存服务器官方发布。
+- **第三方组件**：7-Zip、Java Launch Wrapper、Windows App SDK、.NET 等各自遵循其原有许可，
+  详见 [`licenses/THIRD-PARTY-NOTICES.txt`](licenses/THIRD-PARTY-NOTICES.txt) 与 `licenses/` 下的许可全文。
+
+### 致谢
+
 - **Minecraft** 是 Mojang Studios 的商标，本项目与其无隶属关系。
 - 感谢 **SadEPa** 制作整合包。
 
