@@ -398,10 +398,10 @@ public class GameLaunchService
             ct.ThrowIfCancellationRequested();
             SetStatus($"版本 \"{options.Version}\" 解析完成");
 
-            // 游戏目录：开启版本隔离时切换到 versions/<版本>，世界 / 服务器列表 / 截图等互不互通
+            // 游戏目录：版本隔离生效时切换到 versions/<版本>，
+            // 世界 / 服务器列表 / 截图 / 配置 / 日志等互不互通；libraries 与 assets 仍共享。
             _gameDirectory = minecraftDir;
-            var launchSettings = SettingsService.Instance.Load();
-            if (launchSettings.VersionIsolation)
+            if (VersionIsolationService.IsIsolated(options.Version))
             {
                 var isolatedDir = Path.Combine(minecraftDir, "versions", options.Version);
                 Directory.CreateDirectory(isolatedDir);

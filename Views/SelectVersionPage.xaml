@@ -90,13 +90,23 @@
                                         <TextBlock Text="{x:Bind Id}"
                                                    FontSize="16" FontWeight="SemiBold"
                                                    TextTrimming="CharacterEllipsis" />
-                                        <Border HorizontalAlignment="Left"
-                                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                                CornerRadius="7" Padding="7,1">
-                                            <TextBlock Text="{x:Bind ChannelLabel}"
-                                                       FontSize="11" FontWeight="SemiBold"
-                                                       Foreground="{x:Bind local:XamlHelpers.ChannelBrush(ChannelLabel), Mode=OneTime}" />
-                                        </Border>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                    CornerRadius="7" Padding="7,1">
+                                                <TextBlock Text="{x:Bind ChannelLabel}"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{x:Bind local:XamlHelpers.ChannelBrush(ChannelLabel), Mode=OneTime}" />
+                                            </Border>
+                                            <Border Background="{ThemeResource McOrangeFaintBrush}"
+                                                    BorderBrush="{ThemeResource InfoTagBorderBrush}" BorderThickness="1"
+                                                    CornerRadius="7" Padding="7,1"
+                                                    Visibility="{x:Bind IsolatedVisibility, Mode=OneTime}"
+                                                    ToolTipService.ToolTip="该版本使用独立游戏目录（版本隔离）">
+                                                <TextBlock Text="隔离"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource McOrangeDeepBrush}" />
+                                            </Border>
+                                        </StackPanel>
                                     </StackPanel>
                                     <TextBlock Grid.Column="2"
                                                Text="当前"

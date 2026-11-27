@@ -93,10 +93,24 @@ public class AppSettings
     public bool CheckResources { get; set; } = true;
 
     /// <summary>
-    /// 版本隔离：开启后每个版本使用独立的游戏目录（versions/&lt;版本&gt;），
-    /// 服务器列表、世界、截图、资源包等互不互通。默认关闭（共用 .minecraft）。
+    /// 旧版版本隔离开关（0.99.3 及更早）。仅用于读取旧配置时迁移：
+    /// 新配置请使用 <see cref="VersionIsolationMode"/>。
     /// </summary>
-    public bool VersionIsolation { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? VersionIsolation { get; set; }
+
+    /// <summary>
+    /// 版本隔离的全局默认策略："smart"（智能，默认）/ "all"（全部隔离）/ "off"（关闭）。
+    /// 为空表示尚未设置（旧配置），由 VersionIsolationService 依据旧开关迁移。
+    /// </summary>
+    public string VersionIsolationMode { get; set; } = "";
+
+    /// <summary>按版本的隔离覆盖：版本名 → "on" / "off"；缺少该版本表示跟随全局策略。</summary>
+    public Dictionary<string, string> VersionIsolationOverrides { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>旧版布尔开关的只读视图（供迁移判断，不参与序列化）。</summary>
+    [JsonIgnore]
+    public bool? VersionIsolationLegacy => VersionIsolation;
 
     /// <summary>启动后自动加入橙猫生存服务器（默认开启）。</summary>
     public bool AutoJoinServer { get; set; } = true;

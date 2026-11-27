@@ -23,6 +23,13 @@ public class InstalledVersionItem : ViewModelBase
     /// <summary>是否为异常版本（版本文件缺失或损坏）。</summary>
     public bool IsBroken { get; init; }
 
+    /// <summary>该版本当前是否启用版本隔离。</summary>
+    public bool Isolated { get; init; }
+
+    /// <summary>「隔离」标识的可见性。</summary>
+    public Microsoft.UI.Xaml.Visibility IsolatedVisibility =>
+        Isolated ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
     /// <summary>是否已安装模组加载器（原版之外都算）。</summary>
     public bool HasLoader => !string.Equals(LoaderLabel, "原版", StringComparison.Ordinal);
 
@@ -192,6 +199,7 @@ public class SelectVersionViewModel : ViewModelBase
                     ChannelLabel = VersionChannelService.Label(channel),
                     IconFile = VersionChannelService.IconFile(channel),
                     IsBroken = channel == VersionChannel.Broken,
+                    Isolated = VersionIsolationService.IsIsolated(id),
                 });
             }
 

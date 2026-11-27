@@ -53,7 +53,7 @@ ACLauncher 面向橙猫生存服务器玩家，把「装游戏 → 装模组 →
 - **Java 环境**：自动扫描 `JAVA_HOME`、`PATH`、Program Files 等常见位置，也可手动指定。
 - **JVM 内存**：手动设定或交由启动器按物理内存自动分配。
 - **游戏进程优先级**：普通 / 高 / 低 / 最高 / 最低。
-- **版本隔离**：开启后每个版本使用独立游戏目录（`versions/<版本>`），世界、服务器列表、截图、资源包互不互通；库与资源仍共享，不重复占用磁盘。
+- **版本隔离**：全局默认策略分「智能（带加载器的版本自动隔离）/ 全部隔离 / 关闭」三档，单个版本还可在版本管理里单独覆盖。隔离时游戏目录为 `versions/<版本>`，世界、服务器列表、配置、截图、资源包、光影、日志互不干扰；`libraries` 与 `assets` 仍共享，不重复占用磁盘。
 - **启动后自动加入橙猫生存服务器**：默认开启。
 - **主题**：暗色 / 亮色 / 跟随系统。切换后启动器会自动重启以完整应用主题。
 
@@ -183,6 +183,10 @@ ACLauncher/
 
 - **图像素材**：`Resources/Skins/` 下的 Steve / Alex / Ari / Efe / Kai / Makena / Noor / Sunny / Zuri
   皮肤头部为 **Mojang Studios 的版权素材**，随包分发仅用于离线账户头像，不随本项目的许可证授予任何权利。
+- **方块图标**：`Resources/Blocks/` 下的方块渲染图取自 **Minecraft Wiki**，包含 Mojang Studios 的
+  方块美术素材，同样不随本项目许可证授权；同目录的 Fabric / Quilt / Forge / NeoForge 图标为各自
+  项目的官方 logo，名称与图标归其各自所有者。来源明细见
+  [`tools/block-icon-sources/SOURCES.md`](tools/block-icon-sources/SOURCES.md)。
 - **名称与标识**：「ACLauncher」「橙猫生存服务器」名称及 `Resources/ACLauncher.ico` 图标不作为商标授权；
   基于本项目代码的分支不得暗示自己由橙猫生存服务器官方发布。
 - **第三方组件**：7-Zip、Java Launch Wrapper、Windows App SDK、.NET 等各自遵循其原有许可，

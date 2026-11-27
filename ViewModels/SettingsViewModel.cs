@@ -122,13 +122,16 @@ public class SettingsViewModel : ViewModelBase
         set { if (SetProperty(ref _gamePriority, value)) ScheduleAutoSave(); }
     }
 
-    private bool _versionIsolation;
+    /// <summary>版本隔离全局策略的可选值。</summary>
+    public IReadOnlyList<string> IsolationModes => VersionIsolationService.ModeLabels;
 
-    /// <summary>版本隔离：每个版本使用独立的游戏目录（世界 / 服务器列表等互不互通）。</summary>
-    public bool VersionIsolation
+    private string _isolationMode = VersionIsolationService.LabelFromMode("smart");
+
+    /// <summary>版本隔离全局默认策略（智能 / 全部隔离 / 关闭）。</summary>
+    public string IsolationMode
     {
-        get => _versionIsolation;
-        set { if (SetProperty(ref _versionIsolation, value)) ScheduleAutoSave(); }
+        get => _isolationMode;
+        set { if (SetProperty(ref _isolationMode, value)) ScheduleAutoSave(); }
     }
 
     private bool _autoJoinServer = true;
@@ -182,7 +185,8 @@ public class SettingsViewModel : ViewModelBase
             AutoMemory = settings.AutoMemory;
             Theme = settings.Theme;
             GamePriority = settings.GamePriority;
-            VersionIsolation = settings.VersionIsolation;
+            IsolationMode = VersionIsolationService.LabelFromMode(
+                VersionIsolationService.ToValue(VersionIsolationService.GetGlobalMode()));
             AutoJoinServer = settings.AutoJoinServer;
         }
         finally
@@ -229,7 +233,8 @@ public class SettingsViewModel : ViewModelBase
             settings.AutoMemory = AutoMemory;
             settings.Theme = Theme;
             settings.GamePriority = GamePriority;
-            settings.VersionIsolation = VersionIsolation;
+            settings.VersionIsolationMode = VersionIsolationService.ModeFromLabel(IsolationMode);
+            settings.VersionIsolation = null; // 已迁移到新策略字段
             settings.AutoJoinServer = AutoJoinServer;
 
             await _settingsService.SaveAsync(settings);

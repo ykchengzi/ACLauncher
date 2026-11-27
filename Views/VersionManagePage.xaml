@@ -61,6 +61,14 @@
                                FontSize="11.5" FontWeight="SemiBold"
                                Foreground="{x:Bind local:XamlHelpers.ChannelBrush(ViewModel.ChannelLabel), Mode=OneWay}" />
                 </Border>
+                <Border Background="{ThemeResource McOrangeFaintBrush}"
+                        BorderBrush="{ThemeResource InfoTagBorderBrush}" BorderThickness="1"
+                        CornerRadius="8" Padding="8,2" VerticalAlignment="Center"
+                        Visibility="{x:Bind ViewModel.IsolatedBadgeVisibility, Mode=OneWay}"
+                        ToolTipService.ToolTip="该版本使用独立游戏目录（版本隔离）">
+                    <TextBlock Text="已隔离" FontSize="11.5" FontWeight="SemiBold"
+                               Foreground="{ThemeResource McOrangeDeepBrush}" />
+                </Border>
             </StackPanel>
             <Border Grid.Column="3" VerticalAlignment="Center"
                     Background="{ThemeResource AccentFillColorSecondaryBrush}"
@@ -220,6 +228,25 @@
                                            Style="{StaticResource HintStyle}" />
 
                                 <TextBlock Text="安装或更换加载器会新建一个独立的版本目录，不会覆盖当前版本；安装完成后可在“选择版本”页切换到新版本。"
+                                           Style="{StaticResource HintStyle}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 版本隔离 -->
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="版本隔离" FontSize="16" FontWeight="SemiBold" />
+                                <ComboBox Header="此版本"
+                                          HorizontalAlignment="Stretch"
+                                          ItemsSource="{x:Bind ViewModel.IsolationOptions, Mode=OneWay}"
+                                          SelectedItem="{x:Bind ViewModel.IsolationOption, Mode=TwoWay}" />
+                                <TextBlock Text="{x:Bind ViewModel.IsolationSummary, Mode=OneWay}"
+                                           Style="{StaticResource HintStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.IsolationPathText, Mode=OneWay}"
+                                           Style="{StaticResource LabelStyle}"
+                                           IsTextSelectionEnabled="True"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="隔离后，世界、服务器列表、配置、截图、资源包、光影与日志都存放在上面的目录里；libraries 与 assets 仍与其它版本共享。切换隔离不会自动搬动已有文件，需要时请手动复制。"
                                            Style="{StaticResource HintStyle}" />
                             </StackPanel>
                         </Border>

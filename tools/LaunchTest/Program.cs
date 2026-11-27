@@ -241,6 +241,20 @@ try
         var ver = await LoaderService.Instance.GetLatestLoaderVersionAsync(mcVer, kind);
         Console.WriteLine($"LOADER {kind} for {mcVer}: {ver ?? "<未找到>"}");
     }
+    else if (cmd == "iso")
+    {
+        // 版本隔离解析：iso <版本名>
+        var ver = args.Length > 1 ? args[1] : "";
+        Console.WriteLine($"MODE {VersionIsolationService.ToValue(VersionIsolationService.GetGlobalMode())}");
+        Console.WriteLine($"SETTINGS_EXISTED {SettingsService.Instance.LastLoadHadFile}");
+        if (ver.Length > 0)
+        {
+            Console.WriteLine($"OVERRIDE {VersionIsolationService.GetOverride(ver) ?? "<follow>"}");
+            Console.WriteLine($"ISOLATED {VersionIsolationService.IsIsolated(ver)}");
+            Console.WriteLine($"GAMEDIR {VersionIsolationService.GetGameDirectory(ver)}");
+            Console.WriteLine($"MODSDIR {VersionIsolationService.GetModsDirectory(ver)}");
+        }
+    }
     else if (cmd == "modversions")
     {
         // 项目版本列表：modversions <projectId>

@@ -102,7 +102,66 @@ public class VersionManageViewModel : ViewModelBase
 
     public string ModsDir => _configService.GetModsDirectory(VersionName);
 
-    public string SavesDir => Path.Combine(_configService.MinecraftDirectory, "saves");
+    public string SavesDir => VersionIsolationService.GetSavesDirectory(VersionName);
+
+    // ===== 版本隔离（“管理”标签页） =====
+
+    /// <summary>隔离选项的可选值。</summary>
+    public IReadOnlyList<string> IsolationOptions { get; } = new[] { "跟随全局", "隔离", "不隔离" };
+
+    private bool _suppressIsolationSave = true;
+
+    private string _isolationOption = "跟随全局";
+
+    /// <summary>该版本的隔离选项（跟随全局 / 隔离 / 不隔离）。</summary>
+    public string IsolationOption
+    {
+        get => _isolationOption;
+        set
+        {
+            if (!SetProperty(ref _isolationOption, value)) return;
+            if (!_suppressIsolationSave) ApplyIsolationOption(value);
+        }
+    }
+
+    /// <summary>当前生效的隔离状态说明。</summary>
+    public string IsolationSummary => VersionIsolationService.IsIsolated(VersionName)
+        ? "已隔离：游戏目录为本版本目录，世界 / 模组 / 配置与其他版本互不干扰。"
+        : "未隔离：游戏目录为 .minecraft，世界 / 模组 / 配置与其他未隔离版本共用。";
+
+    /// <summary>当前生效的游戏目录。</summary>
+    public string IsolationPathText => VersionIsolationService.GetGameDirectory(VersionName);
+
+    /// <summary>是否已隔离（界面标签用）。</summary>
+    public bool IsIsolated => VersionIsolationService.IsIsolated(VersionName);
+
+    public Visibility IsolatedBadgeVisibility => IsIsolated ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>用户切换隔离选项：写入覆盖并刷新目录相关统计。</summary>
+    private void ApplyIsolationOption(string label)
+    {
+        var value = label switch
+        {
+            "隔离" => VersionIsolationService.OverrideOn,
+            "不隔离" => VersionIsolationService.OverrideOff,
+            _ => null,
+        };
+
+        VersionIsolationService.SetOverride(VersionName, value);
+        Status = label == "跟随全局"
+            ? "已恢复为跟随全局隔离策略。"
+            : $"已将该版本设为{(label == "隔离" ? "隔离" : "不隔离")}，下次启动生效。";
+
+        OnPropertyChanged(nameof(IsIsolated));
+        OnPropertyChanged(nameof(IsolationSummary));
+        OnPropertyChanged(nameof(IsolationPathText));
+        OnPropertyChanged(nameof(IsolatedBadgeVisibility));
+        OnPropertyChanged(nameof(ModsDir));
+        OnPropertyChanged(nameof(SavesDir));
+
+        _ = RefreshModsAsync();
+        _ = RefreshSaveCountAsync();
+    }
 
     // ===== 加载器管理（“管理”标签页） =====
 
@@ -222,6 +281,7 @@ public class VersionManageViewModel : ViewModelBase
         try
         {
             var modsDir = ModsDir;
+            var savesDir = SavesDir;
             var stats = await Task.Run(() =>
             {
                 var size = "--";
@@ -247,8 +307,8 @@ public class VersionManageViewModel : ViewModelBase
                 var saves = "--";
                 try
                 {
-                    saves = Directory.Exists(SavesDir)
-                        ? $"{Directory.GetDirectories(SavesDir).Length} 个存档"
+                    saves = Directory.Exists(savesDir)
+                        ? $"{Directory.GetDirectories(savesDir).Length} 个存档"
                         : "无存档";
                 }
                 catch { }
@@ -285,6 +345,21 @@ public class VersionManageViewModel : ViewModelBase
         {
             JavaText = "读取失败";
         }
+
+        // 隔离选项：显示当前覆盖值（加载期间不触发保存）
+        _suppressIsolationSave = true;
+        _isolationOption = VersionIsolationService.GetOverride(versionName) switch
+        {
+            VersionIsolationService.OverrideOn => "隔离",
+            VersionIsolationService.OverrideOff => "不隔离",
+            _ => "跟随全局",
+        };
+        OnPropertyChanged(nameof(IsolationOption));
+        OnPropertyChanged(nameof(IsIsolated));
+        OnPropertyChanged(nameof(IsolationSummary));
+        OnPropertyChanged(nameof(IsolationPathText));
+        OnPropertyChanged(nameof(IsolatedBadgeVisibility));
+        _suppressIsolationSave = false;
 
         // 加载器下拉框：默认停在已安装的加载器上
         if (HasLoader && LoaderKinds.Contains(LoaderLabel))
@@ -420,6 +495,23 @@ public class VersionManageViewModel : ViewModelBase
     }
 
     // ===== 模组 =====
+
+    /// <summary>刷新存档数量（隔离状态变化后调用）。</summary>
+    private async Task RefreshSaveCountAsync()
+    {
+        var dir = SavesDir;
+        SavesText = await Task.Run(() =>
+        {
+            try
+            {
+                return Directory.Exists(dir) ? $"{Directory.GetDirectories(dir).Length} 个存档" : "无存档";
+            }
+            catch
+            {
+                return "--";
+            }
+        });
+    }
 
     /// <summary>重新扫描 mods 目录。</summary>
     public async Task RefreshModsAsync()

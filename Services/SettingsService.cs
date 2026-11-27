@@ -19,6 +19,9 @@ public class SettingsService
     /// <summary>settings.json 绝对路径。</summary>
     public string SettingsPath => Path.Combine(AppContext.BaseDirectory, "settings.json");
 
+    /// <summary>最近一次 Load 时配置文件是否存在（用于区分「老用户升级」与「全新安装」）。</summary>
+    public bool LastLoadHadFile { get; private set; }
+
     /// <summary>
     /// 同步加载设置（小文件，直接 File.ReadAllText，避免在 UI 线程上 .GetAwaiter().GetResult() 造成死锁）。
     /// 文件不存在或损坏时返回默认设置。
@@ -27,7 +30,13 @@ public class SettingsService
     {
         try
         {
-            if (!File.Exists(SettingsPath)) return new AppSettings();
+            if (!File.Exists(SettingsPath))
+            {
+                LastLoadHadFile = false;
+                return new AppSettings();
+            }
+
+            LastLoadHadFile = true;
             var json = File.ReadAllText(SettingsPath);
             return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
         }

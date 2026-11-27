@@ -37,6 +37,7 @@
     <Compile Include="$(AclSrc)\Services\LogService.cs" Link="Services\LogService.cs" />
     <Compile Include="$(AclSrc)\Services\SettingsService.cs" Link="Services\SettingsService.cs" />
     <Compile Include="$(AclSrc)\Services\LaunchCounterService.cs" Link="Services\LaunchCounterService.cs" />
+    <Compile Include="$(AclSrc)\Services\VersionIsolationService.cs" Link="Services\VersionIsolationService.cs" />
     <Compile Include="$(AclSrc)\Services\ConfigService.cs" Link="Services\ConfigService.cs" />
     <Compile Include="$(AclSrc)\Services\DownloadService.cs" Link="Services\DownloadService.cs" />
     <Compile Include="$(AclSrc)\Services\JavaService.cs" Link="Services\JavaService.cs" />
