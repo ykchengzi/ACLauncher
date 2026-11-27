@@ -2,7 +2,7 @@ namespace ACLauncher.Services;
 
 /// <summary>
 /// 启动次数统计：每次游戏成功启动后累加，并在特定次数触发“考虑购买正版”的提醒。
-/// 次数保存在 settings.json，与其它设置一起持久化。
+/// 仅由离线 / 外置登录账户调用（正版账户不计数、不提醒）。次数保存在 settings.json。
 /// </summary>
 public static class LaunchCounterService
 {

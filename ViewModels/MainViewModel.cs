@@ -550,12 +550,16 @@ public class MainViewModel : ViewModelBase
             {
                 Status = previousStatus;
 
-                // 累计启动次数：命中提醒节点时通知界面弹窗（内容随次数变化）
-                var (count, milestone) = LaunchCounterService.RegisterLaunch();
-                if (milestone is int hit)
+                // 累计启动次数：仅统计离线 / 外置登录账户（正版账户已购买，不再打扰）；
+                // 命中提醒节点时通知界面弹窗（内容随次数变化）
+                if (account.Type != AccountType.Microsoft)
                 {
-                    LogService.Instance.Log($"累计启动 {count} 次，显示购买正版提醒。");
-                    LaunchMilestoneReached?.Invoke(hit);
+                    var (count, milestone) = LaunchCounterService.RegisterLaunch();
+                    if (milestone is int hit)
+                    {
+                        LogService.Instance.Log($"累计启动 {count} 次，显示购买正版提醒。");
+                        LaunchMilestoneReached?.Invoke(hit);
+                    }
                 }
             }
         }
