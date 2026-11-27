@@ -99,7 +99,7 @@ public class VersionDownloadService
     private static readonly BuiltInDownloadEntry[] BuiltInDownloadUrls =
     {
         new(
-            "http://gh-proxy.org/https://github.com/ykchengzi/aclc/releases/download/0.0.0.0.0.0.0.1/26.2_By_SadEPa.zip",
+            "http://gh-proxy.org/https://github.com/ykchengzi/ACLauncher/releases/download/%E6%95%B4%E5%90%88%E5%8C%85/26.2_By_SadEPa.zip",
             "SadEPa的整合包 (26.2)",
             "26.2",
             "26.2-fabric-0.19.5",

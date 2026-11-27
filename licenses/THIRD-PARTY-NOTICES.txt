@@ -41,7 +41,7 @@ ACLauncher 第三方组件与许可声明
 本项目的许可
    ACLauncher 源代码采用 GNU General Public License v3.0 或更高版本（GPL-3.0-or-later）授权，
    全文见安装目录或仓库根目录的 LICENSE 文件。
-   完整源代码：https://github.com/ykchengzi/aclc
+   完整源代码：https://github.com/ykchengzi/ACLauncher
    「ACLauncher」「橙猫生存服务器」名称与应用图标不作为商标授权，
    基于本项目代码的分支不得暗示自己由橙猫生存服务器官方发布。
 

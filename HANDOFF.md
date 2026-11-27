@@ -188,7 +188,7 @@ ACLauncher\
 - 拼接方式：`mirror.TrimEnd('/') + "/" + 原始URL`。例：`https://gh-proxy.org/https://github.com/user/repo/releases/download/.../file.zip`。
 - 内置整合包（UI 不显示链接、不显示「占位/GitHub Release/内置 zip」字样）：
   - 显示标题：**SadEPa的整合包 (26.2)**
-  - URL：`https://github.com/ykchengzi/aclc/releases/download/0.0.0.0.0.0.0.1/26.2_By_SadEPa.zip`
+  - URL：`https://github.com/ykchengzi/ACLauncher/releases/download/%E6%95%B4%E5%90%88%E5%8C%85/26.2_By_SadEPa.zip`
 - Minecraft 资源镜像：BMCLAPI `https://bmclapi2.bangbang93.com`
   - 库：`/maven/<path>`；assets：`/assets/<hh>/<hash>`；核心 JAR / piston-data 替换域名；JRE：`/v1/objects/<sha1>/<file>`、`/v1/packages/<sha>/manifest.json`。
 - Fabric meta：`https://meta.fabricmc.net/v2/versions/loader/<mc>/<loaderVer>/profile/json`；Quilt：`https://meta.quiltmc.org/v3/...`；原版清单：`https://piston-meta.mojang.com/mc/game/version_manifest_v2.json`。
