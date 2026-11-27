@@ -1,0 +1,60 @@
+<Page
+    x:Class="ACLauncher.Views.LogPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+            <Rectangle Style="{StaticResource PageTitleAccentBar}" />
+            <TextBlock Text="运行日志" Style="{ThemeResource TitleTextBlockStyle}" />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Background="{ThemeResource SolidBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12">
+            <!-- 虚拟化列表：只渲染可见行，避免大日志全量排版导致卡顿 / 无响应 -->
+            <ListView x:Name="LogList"
+                      ItemsSource="{x:Bind ViewModel.Lines, Mode=OneWay}"
+                      SelectionMode="None"
+                      IsItemClickEnabled="False">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock Text="{x:Bind}"
+                                   FontFamily="Consolas"
+                                   FontSize="12.5"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsTextSelectionEnabled="True"
+                                   LineHeight="19" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsStackPanel />
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+            <Button Content="一键复制"
+                    MinWidth="110"
+                    Click="Copy_Click"
+                    ToolTipService.ToolTip="复制全部日志到剪贴板" />
+            <Button Content="清空日志"
+                    MinWidth="120"
+                    Click="Clear_Click" />
+        </StackPanel>
+    </Grid>
+</Page>

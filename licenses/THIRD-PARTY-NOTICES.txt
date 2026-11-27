@@ -1,0 +1,37 @@
+ACLauncher 第三方组件与许可声明
+==================================
+
+本启动器随安装包分发以下第三方组件。各组件版权归其作者所有，遵循各自许可协议。
+
+1. 7-Zip（7za.exe）
+   版权：Copyright (C) 1999-2025 Igor Pavlov
+   许可：GNU LGPL（部分代码含 unRAR 限制 / BSD）
+   说明：仅用于解压整合包与安装器；完整许可文本见 licenses/7zip-LICENSE.txt。
+   源码：https://www.7-zip.org/
+
+2. java_launch_wrapper（java_launch_wrapper.jar）
+   作者：00ll00
+   许可：MIT License
+   说明：修复 Windows「UTF-8 Beta」区域设置下 Java 命令行中文乱码；许可文本见 licenses/java_launch_wrapper-LICENSE.txt。
+   源码：https://github.com/00ll00/java_launch_wrapper
+
+3. authlib-injector（运行时下载，不随本安装包分发）
+   作者：yushijinhun 及贡献者
+   许可：AGPL-3.0
+   说明：外置登录（Yggdrasil / LittleSkin）首次启动时从官方 Release 下载到 .minecraft/authlib-injector/。
+   源码：https://github.com/yushijinhun/authlib-injector
+
+4. Microsoft Windows App SDK / .NET 运行时
+   版权：Microsoft Corporation
+   许可：MIT
+   说明：随自包含安装包分发，用于运行启动器界面。
+
+5. Minecraft 默认皮肤素材
+   版权：Mojang Studios
+   说明：启动器内置 9 款默认皮肤（Steve / Alex / Ari / Efe / Kai / Makena / Noor / Sunny / Zuri）
+   的头部图片，仅用于在启动器内为离线账户显示头像。
+
+6. Microsoft 登录（OAuth 设备码）
+   说明：默认使用的客户端 ID 为公开的 Minecraft 启动器公共应用标识，因此微软授权页会显示
+   对应应用名称。你可以在「设置 → 微软登录」中填入自己注册的 Azure 应用客户端 ID，
+   授权页就会显示你的应用名称。客户端 ID 不属于可版权化的代码。

@@ -1,0 +1,292 @@
+<Page
+    x:Class="ACLauncher.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:ACLauncher.Views"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="18,14" />
+        </Style>
+        <Style x:Key="CardCaptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="InfoTagStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Padding" Value="9,3" />
+            <Setter Property="Background" Value="{ThemeResource McOrangeFaintBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource InfoTagBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style x:Key="InfoTagTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{ThemeResource InfoTagTextBrush}" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Padding="24,18,24,14" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 欢迎行 -->
+        <StackPanel Grid.Row="0" Spacing="2">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Rectangle Style="{StaticResource PageTitleAccentBar}" />
+                <TextBlock Text="{x:Bind ViewModel.WelcomeText, Mode=OneWay}"
+                           FontSize="21" FontWeight="SemiBold" />
+            </StackPanel>
+            <TextBlock Text="今天也来橙猫服玩一会儿吧"
+                       FontSize="12"
+                       Margin="15,0,0,0"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+        </StackPanel>
+
+        <!-- 顶部：服务器状态（左）+ 当前版本 / Java 环境（右竖排），自适应宽度不裁切 -->
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.25*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 服务器状态 -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16,11" VerticalAlignment="Stretch">
+                <StackPanel Spacing="6">
+                    <Grid MinHeight="24">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE968;" FontSize="13" VerticalAlignment="Center"
+                                      Foreground="{ThemeResource TealAccentBrush}" />
+                            <TextBlock Text="服务器状态" Style="{StaticResource CardCaptionStyle}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Padding="6,2"
+                                ToolTipService.ToolTip="刷新服务器状态"
+                                Command="{x:Bind ViewModel.RefreshServerStatusCommand}">
+                            <FontIcon Glyph="&#xE72C;" FontSize="11" />
+                        </Button>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Ellipse Width="9" Height="9" VerticalAlignment="Center"
+                                 Visibility="{x:Bind ViewModel.ServerOnlineDotVisibility, Mode=OneWay}"
+                                 Fill="{StaticResource ServerOnlineBrush}" />
+                        <Ellipse Width="9" Height="9" VerticalAlignment="Center"
+                                 Visibility="{x:Bind ViewModel.ServerOfflineDotVisibility, Mode=OneWay}"
+                                 Fill="{StaticResource ServerOfflineBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.ServerStatusText, Mode=OneWay}"
+                                   FontSize="19" FontWeight="SemiBold" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <TextBlock Text="{x:Bind ViewModel.ServerPlayersText, Mode=OneWay}"
+                                   FontSize="12.5" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TealAccentBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.ServerVersionName, Mode=OneWay}"
+                                   FontSize="12.5"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="mc.ambercat.top"
+                                   FontSize="11.5"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{x:Bind ViewModel.ServerMotdText, Mode=OneWay}"
+                               FontSize="11.5" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!-- 右侧：当前版本 + Java 环境 -->
+            <Grid Grid.Column="1" RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="6">
+                        <Grid MinHeight="24">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE7C4;" FontSize="13" VerticalAlignment="Center"
+                                          Foreground="{StaticResource McOrangeBrush}" />
+                                <TextBlock Text="当前版本" Style="{StaticResource CardCaptionStyle}" VerticalAlignment="Center" />
+                                <Border Style="{StaticResource InfoTagStyle}"
+                                        Padding="7,2"
+                                        VerticalAlignment="Center"
+                                        Visibility="{x:Bind ViewModel.LoaderTagVisibility, Mode=OneWay}">
+                                    <TextBlock Text="{x:Bind ViewModel.LoaderTagText, Mode=OneWay}"
+                                               Style="{StaticResource InfoTagTextStyle}" />
+                                </Border>
+                            </StackPanel>
+                            <Button Content="{x:Bind ViewModel.VersionButtonText, Mode=OneWay}"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Height="26" MinWidth="96" Padding="10,0" FontSize="11.5"
+                                    Command="{x:Bind ViewModel.VersionButtonCommand}" />
+                        </Grid>
+                        <TextBlock Text="{x:Bind ViewModel.GameVersion, Mode=OneWay}"
+                                   FontSize="17" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource McOrangeDeepBrush}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="提示：在“选择版本”页右键版本卡片可进入版本管理"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="8">
+                        <Grid MinHeight="28">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE943;" FontSize="14" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource TealAccentBrush}" />
+                                <TextBlock Text="Java 环境" Style="{StaticResource CardCaptionStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <Button Content="详情"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Height="28" MinWidth="62" FontSize="12"
+                                    Command="{x:Bind ViewModel.JavaDetailCommand}" />
+                        </Grid>
+                        <TextBlock Text="{x:Bind ViewModel.JavaSummaryText, Mode=OneWay}"
+                                   FontSize="13" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- 最近日志：占满剩余高度 -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" VerticalAlignment="Stretch">
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" MinHeight="28">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE7C3;" FontSize="14" VerticalAlignment="Center"
+                                  Foreground="{ThemeResource TealAccentBrush}" />
+                        <TextBlock Text="最近日志" Style="{StaticResource CardCaptionStyle}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Button Content="查看全部"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Height="28" MinWidth="78" FontSize="12"
+                            Command="{x:Bind ViewModel.OpenLogCommand}" />
+                </Grid>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.LogPreviewLines, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{x:Bind}"
+                                           FontFamily="Consolas"
+                                           FontSize="11.5"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- 底部启动坞 -->
+        <Border Grid.Row="3" Style="{StaticResource CardStyle}"
+                Background="{ThemeResource WarmCreamBrush}"
+                Padding="14,10"
+                CornerRadius="14">
+            <Grid ColumnSpacing="14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        VerticalAlignment="Stretch"
+                        Padding="10,6"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{x:Bind ViewModel.OpenAccountCommand}"
+                        ToolTipService.ToolTip="管理账户">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Width="34" Height="34" CornerRadius="8"
+                                Background="{StaticResource McOrangeBrush}">
+                            <Grid>
+                                <FontIcon Glyph="&#xE77B;" FontSize="15"
+                                          Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                <Image Width="34" Height="34" Stretch="UniformToFill"
+                                       Source="{x:Bind local:MainPage.PathToImage(ViewModel.CurrentHeadImagePath), Mode=OneWay}" />
+                            </Grid>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="{x:Bind ViewModel.CurrentPlayer, Mode=OneWay}"
+                                       FontSize="13" FontWeight="SemiBold" />
+                            <TextBlock Text="{x:Bind ViewModel.CurrentAccountType, Mode=OneWay}"
+                                       FontSize="10.5"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Button>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
+                    <TextBlock Text="{x:Bind ViewModel.Status, Mode=OneWay}"
+                               FontSize="11.5" TextTrimming="CharacterEllipsis"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <ProgressBar Maximum="100"
+                                 Value="{x:Bind ViewModel.LaunchProgress, Mode=OneWay}"
+                                 IsIndeterminate="{x:Bind ViewModel.IsProgressIndeterminate, Mode=OneWay}"
+                                 Visibility="{x:Bind ViewModel.ProgressVisibility, Mode=OneWay}" />
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        Content="取消启动"
+                        MinWidth="104"
+                        VerticalAlignment="Stretch"
+                        Visibility="{x:Bind ViewModel.CancelButtonVisibility, Mode=OneWay}"
+                        Command="{x:Bind ViewModel.CancelLaunchCommand}" />
+
+                <Button Grid.Column="3"
+                        Style="{StaticResource MinecraftLaunchButtonStyle}"
+                        Height="46"
+                        MinWidth="150"
+                        VerticalAlignment="Stretch"
+                        Command="{x:Bind ViewModel.LaunchCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE768;" FontSize="15" Foreground="White" />
+                        <TextBlock Text="启动游戏" FontSize="15" FontWeight="SemiBold" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- 强制退出悬浮按钮 -->
+        <Button Grid.RowSpan="4"
+                Command="{x:Bind ViewModel.KillCommand}"
+                Visibility="{x:Bind ViewModel.KillButtonVisibility, Mode=OneWay}"
+                Width="54" Height="54"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="0,0,20,100"
+                ToolTipService.ToolTip="强制退出游戏">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Ellipse Fill="{ThemeResource SystemFillColorCriticalBrush}" />
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                </ControlTemplate>
+            </Button.Template>
+            <FontIcon Glyph="&#xE7E8;" FontSize="24" Foreground="White" />
+        </Button>
+    </Grid>
+</Page>

@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ACLauncher - 《我的世界》Java 版启动器
+    框架：.NET 8 (LTS) + WinUI 3 (Windows App SDK)
+    架构：MVVM
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <RootNamespace>ACLauncher</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources\ACLauncher.ico</ApplicationIcon>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <!-- unpackaged 应用：禁用自动生成的 Main（它不含 Bootstrap 初始化），改用我们手写的 Main -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+
+    <!-- 非打包（unpackaged）模式：生成的 ACLauncher.exe 直接与 .minecraft 目录放在一起运行，
+         无需安装 MSIX 包。
+         自包含部署：.NET 运行时与 Windows App SDK（WinUI 3）运行时全部随程序分发，
+         目标机器无需预装 .NET Desktop Runtime / Windows App Runtime，双击即用。 -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+
+    <!-- 版本号：与 Installer\ACLauncher-Setup.iss 的 MyAppVersion 保持一致 -->
+    <Version>0.99.3</Version>
+    <FileVersion>0.99.3</FileVersion>
+    <AssemblyVersion>0.99.3</AssemblyVersion>
+    <InformationalVersion>0.99.3-beta</InformationalVersion>
+  </PropertyGroup>
+
+  <!-- 非 GUI 测试 harness（tools\LaunchTest）是独立的控制台工程，不参与主程序编译 -->
+  <ItemGroup>
+    <Compile Remove="tools\**\*.cs" />
+    <Content Remove="tools\**" />
+    <None Remove="tools\**" />
+    <Page Remove="tools\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
+      <Content Include="Resources\7z\7za.exe" Link="7z\7za.exe" CopyToOutputDirectory="PreserveNewest" />
+      <!-- Java Launch Wrapper（MIT, Copyright (c) 2022 00ll00）：修复 Windows UTF-8 Beta 区域下 Java 命令行中文/特殊字符乱码 -->
+      <Content Include="Resources\java_launch_wrapper\java_launch_wrapper.jar" Link="java_launch_wrapper\java_launch_wrapper.jar" CopyToOutputDirectory="PreserveNewest" />
+      <!-- VC++ 运行库（WinUI 3 原生组件依赖；自包含部署时随程序分发，目标机器无需安装 VC++ 运行库） -->
+      <Content Include="Resources\vcruntime\*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <!-- 应用图标（任务栏 / 标题栏使用） -->
+      <Content Include="Resources\ACLauncher.ico" Link="ACLauncher.ico" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="Resources\ACLauncher.png" Link="ACLauncher.png" CopyToOutputDirectory="PreserveNewest" />
+      <!-- 离线账户默认皮肤头像（Steve / Alex / Ari / Efe / Kai / Makena / Noor / Sunny / Zuri 的头部） -->
+      <Content Include="Resources\Skins\*.png" Link="Skins\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <!-- 第三方许可声明（7-Zip / java_launch_wrapper 等） -->
+      <Content Include="licenses\*.txt" Link="licenses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

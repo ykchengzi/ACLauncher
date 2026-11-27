@@ -1,0 +1,164 @@
+<Page
+    x:Class="ACLauncher.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="24" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Padding="24,24,24,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 自动保存反馈：固定在页面顶部，滚动内容时始终可见 -->
+        <TextBlock Grid.Row="0" Text="{x:Bind ViewModel.SaveHint, Mode=OneWay}"
+                   Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                   Margin="0,0,0,12" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="20" Margin="0,0,0,24">
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                    <Rectangle Style="{StaticResource PageTitleAccentBar}" />
+                    <TextBlock Text="设置" Style="{ThemeResource TitleTextBlockStyle}" />
+                </StackPanel>
+                <TextBlock Text="更改会自动保存，无需手动点击保存。"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Margin="0,0,0,8" />
+
+                <!-- ===== Java 环境 ===== -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="Java 环境" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                        <TextBlock Text="当前 Java 路径" Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.JavaPathDisplay, Mode=OneWay}"
+                                   IsTextSelectionEnabled="True"
+                                   TextTrimming="CharacterEllipsis" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="自动检测 Java"
+                                    Command="{x:Bind ViewModel.DetectJavaCommand}" />
+                            <Button Content="手动浏览..." Click="BrowseJava_Click" />
+                        </StackPanel>
+
+                        <ComboBox Header="检测到的 Java"
+                                  ItemsSource="{x:Bind ViewModel.DetectedJavaList, Mode=OneWay}"
+                                  DisplayMemberPath="Display"
+                                  SelectedItem="{x:Bind ViewModel.SelectedJava, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== JVM 内存 ===== -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="JVM 内存" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                        <ToggleSwitch Header="自动分配内存"
+                                      OnContent="自动：按物理内存自动计算（推荐）"
+                                      OffContent="手动：自行指定最小 / 最大内存"
+                                      IsOn="{x:Bind ViewModel.AutoMemory, Mode=TwoWay}" />
+                        <TextBlock Text="{x:Bind ViewModel.AutoMemoryHint, Mode=OneWay}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.AutoMemory, Mode=OneWay}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Grid ColumnSpacing="16" IsHitTestVisible="{x:Bind ViewModel.ManualMemoryEnabled, Mode=OneWay}"
+                              Opacity="{x:Bind ViewModel.ManualMemoryOpacity, Mode=OneWay}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <NumberBox Header="最小内存（MB）"
+                                       Minimum="256" Maximum="65536"
+                                       SmallChange="256"
+                                       SpinButtonPlacementMode="Compact"
+                                       Value="{x:Bind ViewModel.MinMemoryMB, Mode=TwoWay}" />
+                            <NumberBox Grid.Column="1"
+                                       Header="最大内存（MB）"
+                                       Minimum="256" Maximum="65536"
+                                       SmallChange="256"
+                                       SpinButtonPlacementMode="Compact"
+                                       Value="{x:Bind ViewModel.MaxMemoryMB, Mode=TwoWay}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== 游戏进程 ===== -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="游戏进程" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                        <ComboBox Header="游戏进程优先级"
+                                  ItemsSource="{x:Bind ViewModel.Priorities, Mode=OneWay}"
+                                  SelectedItem="{x:Bind ViewModel.GamePriority, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch" />
+                        <TextBlock Text="调整 Java 游戏进程在系统中的优先级。追求流畅可设为“高”，发热/卡顿时可设为“低”。"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== 游戏行为 ===== -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="游戏行为" Style="{ThemeResource SubtitleTextBlockStyle}" />
+
+                        <ToggleSwitch Header="版本隔离"
+                                      OnContent="每个版本使用独立目录（世界 / 服务器列表 / 截图 / 资源包互不互通）"
+                                      OffContent="所有版本共用 .minecraft（默认）"
+                                      IsOn="{x:Bind ViewModel.VersionIsolation, Mode=TwoWay}" />
+                        <TextBlock Text="开启后，游戏目录切换到 versions\&lt;版本&gt;，各版本存档与设置互不影响；库与资源仍然共享，不会重复占用磁盘。"
+                                   TextWrapping="Wrap"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                        <ToggleSwitch Header="启动后自动加入橙猫生存服务器"
+                                      OnContent="开启（默认）：启动完成直接进入服务器"
+                                      OffContent="关闭：停在主菜单，自行选择服务器"
+                                      IsOn="{x:Bind ViewModel.AutoJoinServer, Mode=TwoWay}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== 微软登录 ===== -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="微软登录" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                        <TextBox Header="自定义客户端 ID（可选）"
+                                 PlaceholderText="留空使用内置公共客户端 ID"
+                                 Text="{x:Bind ViewModel.MicrosoftClientId, Mode=TwoWay}"
+                                 HorizontalAlignment="Stretch" />
+                        <TextBlock Text="留空时授权页显示为公共启动器应用（Prism Launcher）。填入自己在 Azure 注册的应用客户端 ID 后，授权页会显示你的应用名称；教程见项目文档。"
+                                   TextWrapping="Wrap"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== 外观 ===== -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="外观" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                        <ComboBox Header="主题"
+                                  ItemsSource="{x:Bind ViewModel.Themes, Mode=OneWay}"
+                                  SelectedItem="{x:Bind ViewModel.Theme, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch" />
+                        <TextBlock Text="切换后启动器会自动重启以应用主题。"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

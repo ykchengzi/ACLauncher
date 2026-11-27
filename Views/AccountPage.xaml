@@ -1,0 +1,134 @@
+<Page
+    x:Class="ACLauncher.Views.AccountPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ACLauncher.Models"
+    xmlns:local="using:ACLauncher.Views"
+    mc:Ignorable="d">
+
+    <Grid Padding="24,18,24,14" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题区 -->
+        <StackPanel Grid.Row="0" Spacing="3">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Rectangle Style="{StaticResource PageTitleAccentBar}" />
+                <TextBlock Text="账户" Style="{ThemeResource TitleTextBlockStyle}" />
+            </StackPanel>
+            <TextBlock Text="点按选中账户，再切换或删除"
+                       FontSize="12"
+                       Margin="15,0,0,0"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+        </StackPanel>
+
+        <!-- 账户卡片：三栏 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Accounts, Mode=OneWay}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MaximumRowsOrColumns="3"
+                                       ItemsStretch="Fill"
+                                       MinItemWidth="220"
+                                       MinItemHeight="96"
+                                       MinColumnSpacing="12"
+                                       MinRowSpacing="12" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="models:Account">
+                        <Button Tag="{x:Bind Id}"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Click="AccountCard_Click"
+                                DoubleTapped="AccountCard_DoubleTapped">
+                            <Border Padding="16,14"
+                                    CornerRadius="12"
+                                    BorderThickness="1"
+                                    Background="{x:Bind local:AccountPage.GetCardBackground(IsSelected), Mode=OneWay}"
+                                    BorderBrush="{x:Bind local:AccountPage.GetCardBorder(IsSelected), Mode=OneWay}">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Width="38" Height="38" CornerRadius="8"
+                                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                            VerticalAlignment="Top">
+                                        <Grid>
+                                            <FontIcon Glyph="&#xE77B;" FontSize="16"
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <Image Width="38" Height="38"
+                                                   Stretch="UniformToFill"
+                                                   Source="{x:Bind local:AccountPage.PathToImage(HeadImagePath), Mode=OneWay}" />
+                                        </Grid>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="{x:Bind PlayerName}"
+                                                   FontSize="15" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind TypeDisplay}"
+                                                   FontSize="11.5"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="2"
+                                               Text="当前"
+                                               VerticalAlignment="Top"
+                                               FontSize="11.5" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource McOrangeDeepBrush}"
+                                               Visibility="{x:Bind IsCurrent, Mode=OneWay}" />
+                                </Grid>
+                            </Border>
+                        </Button>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+
+        <!-- 底部操作栏 -->
+        <StackPanel Grid.Row="2" Spacing="10">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Content="添加 Microsoft 账户" Height="40" Click="AddMicrosoft_Click" />
+                    <Button Content="添加离线账户" Height="40" Click="AddOffline_Click" />
+                    <Button Content="LittleSkin 登录" Height="40" Click="AddLittleSkin_Click" />
+                    <Button Content="自定义外置登录" Height="40" Click="AddCustomExternal_Click" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button Content="重新登录"
+                            Height="40" MinWidth="96"
+                            Visibility="{x:Bind ViewModel.CanRelogin, Mode=OneWay}"
+                            Click="Relogin_Click" />
+                    <Button Content="切换到此账户"
+                            Style="{ThemeResource AccentButtonStyle}"
+                            Height="40" MinWidth="116"
+                            IsEnabled="{x:Bind ViewModel.CanSwitch, Mode=OneWay}"
+                            Click="Switch_Click" />
+                    <Button Content="删除账户"
+                            Height="40" MinWidth="96"
+                            IsEnabled="{x:Bind ViewModel.CanDelete, Mode=OneWay}"
+                            Click="Delete_Click" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Text="提示：启动器会自动记住上次登录的账户。"
+                       FontSize="12"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+        </StackPanel>
+    </Grid>
+</Page>

@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    非 GUI 端到端验证 harness（控制台）。
+    不引用主项目工程，而是用 <Compile Include> 直接链接生产 .cs，保证验证的是与交付物同一份代码。
+    生产源码根默认取本目录上两级（...\ACLauncher\），也可用 -p:AclSrc=... 覆盖。
+    构建：dotnet build tools\LaunchTest\LaunchTest.csproj -c Release
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <UseWindowsForms>false</UseWindowsForms>
+    <AssemblyName>LaunchTest</AssemblyName>
+    <RootNamespace>ACLauncher</RootNamespace>
+    <AclSrc Condition="'$(AclSrc)' == ''">$(MSBuildProjectDirectory)\..\..</AclSrc>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 注意：不要链接含 WinUI 依赖（Microsoft.UI.Xaml）或启动引导类的源文件，否则控制台工程编译失败。 -->
+    <Compile Include="$(AclSrc)\Helpers\CommandLineHelper.cs" Link="Helpers\CommandLineHelper.cs" />
+    <Compile Include="$(AclSrc)\Helpers\JsonHelper.cs" Link="Helpers\JsonHelper.cs" />
+    <Compile Include="$(AclSrc)\Helpers\MavenHelper.cs" Link="Helpers\MavenHelper.cs" />
+    <Compile Include="$(AclSrc)\Helpers\OsInfo.cs" Link="Helpers\OsInfo.cs" />
+
+    <Compile Include="$(AclSrc)\Models\Account.cs" Link="Models\Account.cs" />
+    <Compile Include="$(AclSrc)\Models\AppSettings.cs" Link="Models\AppSettings.cs" />
+    <Compile Include="$(AclSrc)\Models\Config.cs" Link="Models\Config.cs" />
+    <Compile Include="$(AclSrc)\Models\GameProcessPriority.cs" Link="Models\GameProcessPriority.cs" />
+    <Compile Include="$(AclSrc)\Models\Library.cs" Link="Models\Library.cs" />
+    <Compile Include="$(AclSrc)\Models\ModrinthIndex.cs" Link="Models\ModrinthIndex.cs" />
+    <Compile Include="$(AclSrc)\Models\VersionJson.cs" Link="Models\VersionJson.cs" />
+
+    <Compile Include="$(AclSrc)\Services\LogService.cs" Link="Services\LogService.cs" />
+    <Compile Include="$(AclSrc)\Services\SettingsService.cs" Link="Services\SettingsService.cs" />
+    <Compile Include="$(AclSrc)\Services\ConfigService.cs" Link="Services\ConfigService.cs" />
+    <Compile Include="$(AclSrc)\Services\DownloadService.cs" Link="Services\DownloadService.cs" />
+    <Compile Include="$(AclSrc)\Services\JavaService.cs" Link="Services\JavaService.cs" />
+    <Compile Include="$(AclSrc)\Services\VersionParserService.cs" Link="Services\VersionParserService.cs" />
+    <Compile Include="$(AclSrc)\Services\PackInstallService.cs" Link="Services\PackInstallService.cs" />
+    <Compile Include="$(AclSrc)\Services\GameLaunchService.cs" Link="Services\GameLaunchService.cs" />
+    <Compile Include="$(AclSrc)\Services\JavaRuntimeService.cs" Link="Services\JavaRuntimeService.cs" />
+    <Compile Include="$(AclSrc)\Services\ServerStatusService.cs" Link="Services\ServerStatusService.cs" />
+    <Compile Include="$(AclSrc)\Services\VanillaSourceService.cs" Link="Services\VanillaSourceService.cs" />
+    <Compile Include="$(AclSrc)\Services\ModrinthService.cs" Link="Services\ModrinthService.cs" />
+    <Compile Include="$(AclSrc)\Services\HttpFactory.cs" Link="Services\HttpFactory.cs" />
+    <Compile Include="$(AclSrc)\Services\ResourceService.cs" Link="Services\ResourceService.cs" />
+    <Compile Include="$(AclSrc)\Services\TranslationService.cs" Link="Services\TranslationService.cs" />
+    <Compile Include="$(AclSrc)\Services\LoaderService.cs" Link="Services\LoaderService.cs" />
+    <Compile Include="$(AclSrc)\Services\UpdateService.cs" Link="Services\UpdateService.cs" />
+    <Compile Include="$(AclSrc)\Services\YggdrasilService.cs" Link="Services\YggdrasilService.cs" />
+  </ItemGroup>
+
+</Project>

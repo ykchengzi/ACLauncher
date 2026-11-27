@@ -1,0 +1,36 @@
+# ---- 构建产物 ----
+bin/
+obj/
+*.user
+*.suo
+.vs/
+publish/
+
+# ---- 安装包与运行时再分发文件（体积大，不纳入版本库）----
+Installer/*.exe
+Installer/redist/
+!Installer/syspin.exe
+
+# ---- 随程序分发的本地数据（用户运行期生成）----
+.minecraft/
+settings.json
+accounts.json
+config.json
+logs/
+crash-reports/
+
+# ---- 第三方源码与素材（体积大，按需自行获取）----
+ThirdParty/
+film_microbiome/
+
+# ---- 工具与 IDE 缓存 ----
+.zcode/
+__pycache__/
+*.pyc
+
+# ---- 临时 / 杂项 ----
+*.tmp
+*.log
+Thumbs.db
+desktop.ini
+0
