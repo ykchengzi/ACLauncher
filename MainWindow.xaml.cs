@@ -126,6 +126,10 @@ public sealed partial class MainWindow : Window
             if (item is not null) NavView.SelectedItem = item;
         };
 
+        // 累计启动次数达到节点：弹窗劝导购买正版（挂在主窗口上，切页也不漏）
+        _mainViewModel.LaunchMilestoneReached += count =>
+            _ = Views.SupportPrompt.ShowAsync((Content as FrameworkElement)?.XamlRoot, count);
+
         // 每次打开启动器，后台自动检测 Java 路径与版本（不阻塞窗口显示）
         _ = _settingsViewModel.DetectJavaOnStartupAsync();
 
