@@ -78,6 +78,48 @@ public sealed partial class VersionManagePage : Page
         await ViewModel.SetCurrentAsync();
     }
 
+    /// <summary>“模组”页未安装加载器时的跳转：切到“管理”标签页。</summary>
+    private void GoInstallLoader_Click(object sender, RoutedEventArgs e)
+    {
+        Tabs.SelectedIndex = 1;
+    }
+
+    /// <summary>安装 / 更换模组加载器（会新建版本目录）。</summary>
+    private async void InstallLoader_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.InstallSelectedLoaderAsync();
+    }
+
+    /// <summary>跳到下载页的模组分区挑选模组。</summary>
+    private async void GoDownloadMods_Click(object sender, RoutedEventArgs e)
+    {
+        if (App.MainWindow is MainWindow mainWindow)
+        {
+            await mainWindow.NavigateToDownloadSectionAsync("Mod");
+        }
+    }
+
+    /// <summary>删除所选的模组文件。</summary>
+    private async void DeleteMod_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedMod is not { } mod) return;
+
+        var confirm = new ContentDialog
+        {
+            Title = "删除模组",
+            Content = $"确定要删除「{mod.FileName}」吗？\n\n文件会从 mods 目录中直接删除，下次启动游戏生效。",
+            PrimaryButtonText = "删除",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot,
+        };
+
+        if (await confirm.ShowAsync() != ContentDialogResult.Primary) return;
+
+        ViewModel.DeleteSelectedMod();
+        await ViewModel.RefreshModsAsync();
+    }
+
     private async void Delete_Click(object sender, RoutedEventArgs e)
     {
         var confirm = new ContentDialog

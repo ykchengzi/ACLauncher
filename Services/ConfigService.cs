@@ -133,6 +133,15 @@ public class ConfigService
         => Directory.Exists(MinecraftDirectory);
 
     /// <summary>
+    /// 某个版本实际使用的 mods 目录：
+    /// 开启版本隔离时为 versions/&lt;版本&gt;/mods，否则为共享的 .minecraft/mods。
+    /// </summary>
+    public string GetModsDirectory(string versionName) =>
+        SettingsService.Instance.Load().VersionIsolation
+            ? Path.Combine(VersionsDirectory, versionName, "mods")
+            : Path.Combine(MinecraftDirectory, "mods");
+
+    /// <summary>
     /// 获取本地已安装的所有版本名（versions 目录下每个非空子目录为一个版本）。
     /// </summary>
     public List<string> GetInstalledVersions()

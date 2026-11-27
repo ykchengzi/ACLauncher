@@ -14,6 +14,24 @@ public class InstalledVersionItem : ViewModelBase
     /// <summary>模组加载器名称（原版 / Fabric / Quilt / Forge / NeoForge）。</summary>
     public string LoaderLabel { get; init; } = "原版";
 
+    /// <summary>版本渠道标签（正式版 / 测试版 / 远古版 / 版本异常）。</summary>
+    public string ChannelLabel { get; init; } = "正式版";
+
+    /// <summary>渠道图标文件名（Blocks\ 下的方块贴图）。</summary>
+    public string IconFile { get; init; } = "grass_block.png";
+
+    /// <summary>是否为异常版本（版本文件缺失或损坏）。</summary>
+    public bool IsBroken { get; init; }
+
+    /// <summary>是否已安装模组加载器（原版之外都算）。</summary>
+    public bool HasLoader => !string.Equals(LoaderLabel, "原版", StringComparison.Ordinal);
+
+    /// <summary>搜索匹配（版本名 / Minecraft 版本 / 加载器）。</summary>
+    public bool Matches(string keyword) =>
+        Id.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+        || MinecraftVersion.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+        || LoaderLabel.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+
     /// <summary>版本目录占用大小文本。</summary>
     public string SizeText { get; init; } = "";
 
@@ -69,8 +87,36 @@ public class SelectVersionViewModel : ViewModelBase
     private readonly ConfigService _configService = ConfigService.Instance;
     private readonly DispatcherQueue _dispatcher;
 
-    /// <summary>本地已安装版本列表（一行一个版本）。</summary>
-    public ObservableCollection<InstalledVersionItem> Versions { get; } = new();
+    private IReadOnlyList<InstalledVersionItem> _visible = Array.Empty<InstalledVersionItem>();
+
+    /// <summary>
+    /// 当前可见的版本列表（已按搜索词过滤）。
+    /// 用整体替换而不是逐项增删：ItemsRepeater 在布局过程中收到集合变更会抛 E_FAIL。
+    /// </summary>
+    public IReadOnlyList<InstalledVersionItem> Versions
+    {
+        get => _visible;
+        private set
+        {
+            _visible = value;
+            OnPropertyChanged(nameof(Versions));
+        }
+    }
+
+    /// <summary>全部已安装版本（过滤前的原始列表）。</summary>
+    private readonly List<InstalledVersionItem> _allVersions = new();
+
+    private string _searchText = "";
+
+    /// <summary>搜索词：按版本名 / Minecraft 版本 / 加载器过滤。</summary>
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value)) ApplyFilter();
+        }
+    }
 
     private InstalledVersionItem? _selectedVersion;
 
@@ -124,18 +170,18 @@ public class SelectVersionViewModel : ViewModelBase
     /// <summary>扫描本地 versions 目录，加载已安装版本并标记当前版本。</summary>
     public async Task LoadAsync()
     {
-        Versions.Clear();
+        _allVersions.Clear();
         try
         {
-            var current = "";
             var config = await _configService.LoadAsync();
-            current = config.GameVersion ?? "";
+            var current = config.GameVersion ?? "";
 
             var installed = _configService.GetInstalledVersions();
             foreach (var id in installed)
             {
                 var modsCount = CountMods(id);
-                Versions.Add(new InstalledVersionItem
+                var channel = VersionChannelService.DetectInstalled(id, _configService.VersionsDirectory);
+                _allVersions.Add(new InstalledVersionItem
                 {
                     Id = id,
                     IsCurrent = string.Equals(id, current, StringComparison.OrdinalIgnoreCase),
@@ -143,8 +189,13 @@ public class SelectVersionViewModel : ViewModelBase
                     SizeText = $"{_configService.GetVersionSizeMB(id):F0} MB",
                     MinecraftVersion = _configService.GetVersionMinecraftVersion(id),
                     ModsText = modsCount > 0 ? $"{modsCount} 个模组" : "",
+                    ChannelLabel = VersionChannelService.Label(channel),
+                    IconFile = VersionChannelService.IconFile(channel),
+                    IsBroken = channel == VersionChannel.Broken,
                 });
             }
+
+            ApplyFilter();
 
             // 默认选中当前版本（卡片高亮 + 底部按钮可用状态）
             var currentItem = Versions.FirstOrDefault(v => v.IsCurrent) ?? Versions.FirstOrDefault();
@@ -152,10 +203,6 @@ public class SelectVersionViewModel : ViewModelBase
             {
                 SelectCard(currentItem);
             }
-
-            Status = installed.Count == 0
-                ? "尚未安装任何版本，请前往“下载”页下载。"
-                : $"共 {installed.Count} 个已安装版本，选择后点击“设为当前版本”。";
         }
         catch (Exception ex)
         {
@@ -164,12 +211,39 @@ public class SelectVersionViewModel : ViewModelBase
         }
     }
 
-    /// <summary>统计版本目录下 mods 里的 jar 数量。</summary>
+    /// <summary>按搜索词重建可见列表，并保持 / 清除选中状态。</summary>
+    private void ApplyFilter()
+    {
+        var keyword = (_searchText ?? "").Trim();
+        var keep = SelectedVersion;
+
+        Versions = keyword.Length == 0
+            ? _allVersions.ToList()
+            : _allVersions.Where(v => v.Matches(keyword)).ToList();
+
+        if (keep is not null && Versions.Contains(keep))
+        {
+            SelectedVersion = keep;
+        }
+        else
+        {
+            SelectedVersion = null;
+            foreach (var v in _allVersions) v.IsSelected = false;
+        }
+
+        Status = _allVersions.Count == 0
+            ? "尚未安装任何版本，请前往“下载”页下载。"
+            : keyword.Length == 0
+                ? $"共 {_allVersions.Count} 个已安装版本，选择后点击“设为当前版本”。"
+                : $"筛选出 {Versions.Count} / {_allVersions.Count} 个版本。";
+    }
+
+    /// <summary>统计 mods 里的 jar 数量（随版本隔离设置取对应目录）。</summary>
     private int CountMods(string versionId)
     {
         try
         {
-            var modsDir = Path.Combine(_configService.VersionsDirectory, versionId, "mods");
+            var modsDir = _configService.GetModsDirectory(versionId);
             return Directory.Exists(modsDir) ? Directory.EnumerateFiles(modsDir, "*.jar").Count() : 0;
         }
         catch

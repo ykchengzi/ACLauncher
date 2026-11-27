@@ -137,19 +137,34 @@
                                     <DataTemplate x:DataType="services:DownloadableVersion">
                                         <Grid ColumnSpacing="10" Padding="2,5">
                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{x:Bind MainText}"
-                                                           FontSize="15" FontWeight="Bold"
-                                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                            <Image Width="22" Height="22"
+                                                   VerticalAlignment="Center"
+                                                   Stretch="Uniform"
+                                                   Source="{x:Bind local:BlockIcons.Load(IconFile), Mode=OneTime}" />
+                                            <StackPanel Grid.Column="1" Spacing="1">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{x:Bind MainText}"
+                                                               FontSize="15" FontWeight="Bold"
+                                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                            CornerRadius="7" Padding="6,0"
+                                                            VerticalAlignment="Center"
+                                                            Visibility="{x:Bind local:XamlHelpers.Visible(HasChannelLabel), Mode=OneTime}">
+                                                        <TextBlock Text="{x:Bind ChannelLabel}"
+                                                                   FontSize="11" FontWeight="SemiBold"
+                                                                   Foreground="{x:Bind local:XamlHelpers.ChannelBrush(ChannelLabel), Mode=OneTime}" />
+                                                    </Border>
+                                                </StackPanel>
                                                 <TextBlock Text="{x:Bind Note}"
                                                            FontSize="11"
                                                            TextTrimming="CharacterEllipsis"
                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                             </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="已安装"
+                                            <TextBlock Grid.Column="2" Text="已安装"
                                                        VerticalAlignment="Center"
                                                        Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                                                        Visibility="{x:Bind InstalledVisibility, Mode=OneTime}" />

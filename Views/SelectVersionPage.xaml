@@ -15,17 +15,29 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 标题区 -->
-        <StackPanel Grid.Row="0" Spacing="3">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Rectangle Style="{StaticResource PageTitleAccentBar}" />
-                <TextBlock Text="选择版本" Style="{ThemeResource TitleTextBlockStyle}" />
+        <!-- 标题区 + 搜索 -->
+        <Grid Grid.Row="0" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="3">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Rectangle Style="{StaticResource PageTitleAccentBar}" />
+                    <TextBlock Text="选择版本" Style="{ThemeResource TitleTextBlockStyle}" />
+                </StackPanel>
+                <TextBlock Text="点按选中，右键进入版本管理"
+                           FontSize="12"
+                           Margin="15,0,0,0"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
             </StackPanel>
-            <TextBlock Text="点按选中，右键进入版本管理"
-                       FontSize="12"
-                       Margin="15,0,0,0"
-                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-        </StackPanel>
+            <TextBox x:Name="SearchBox"
+                     Grid.Column="1"
+                     Width="288"
+                     VerticalAlignment="Center"
+                     PlaceholderText="搜索版本名 / Minecraft 版本 / 加载器"
+                     TextChanged="SearchBox_TextChanged" />
+        </Grid>
 
         <!-- 版本卡片：三栏，撑满宽度 -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -34,7 +46,7 @@
                     <UniformGridLayout MaximumRowsOrColumns="3"
                                        ItemsStretch="Fill"
                                        MinItemWidth="220"
-                                       MinItemHeight="108"
+                                       MinItemHeight="122"
                                        MinColumnSpacing="12"
                                        MinRowSpacing="12" />
                 </ItemsRepeater.Layout>
@@ -63,12 +75,30 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <!-- 第一行：版本名 + 当前 -->
-                                <Grid Grid.Row="0" ColumnSpacing="8">
-                                    <TextBlock Text="{x:Bind Id}"
-                                               FontSize="16" FontWeight="SemiBold"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <TextBlock HorizontalAlignment="Right"
+                                <!-- 第一行：方块图标 + 版本名 + 渠道标签 + 当前 -->
+                                <Grid Grid.Row="0" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Width="34" Height="34"
+                                           VerticalAlignment="Top"
+                                           Stretch="Uniform"
+                                           Source="{x:Bind local:BlockIcons.Load(IconFile), Mode=OneTime}" />
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Text="{x:Bind Id}"
+                                                   FontSize="16" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <Border HorizontalAlignment="Left"
+                                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                CornerRadius="7" Padding="7,1">
+                                            <TextBlock Text="{x:Bind ChannelLabel}"
+                                                       FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="{x:Bind local:XamlHelpers.ChannelBrush(ChannelLabel), Mode=OneTime}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2"
                                                Text="当前"
                                                FontSize="11.5" FontWeight="SemiBold"
                                                Foreground="{ThemeResource McOrangeDeepBrush}"

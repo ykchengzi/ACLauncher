@@ -61,6 +61,13 @@ public sealed partial class SelectVersionPage : Page
             ? ViewModel?.Versions.FirstOrDefault(v => v.Id == id)
             : null;
 
+    /// <summary>搜索框输入：实时过滤版本卡片。</summary>
+    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (ViewModel is null) return;
+        ViewModel.SearchText = SearchBox.Text;
+    }
+
     /// <summary>左键点按卡片：选中为待操作版本。</summary>
     private void VersionCard_Click(object sender, RoutedEventArgs e)
     {

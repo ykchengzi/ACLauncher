@@ -62,6 +62,15 @@ public partial class App : Application
 
     public App()
     {
+        // 未处理异常落盘（WinUI 的 stowed exception 不会进日志，崩溃排查靠这份文件）
+        UnhandledException += (_, e) =>
+        {
+            WriteCrashLog("XamlUnhandled", e.Exception);
+            e.Handled = false;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            WriteCrashLog("AppDomain", e.ExceptionObject as Exception);
+
         // 应用级主题：Application.RequestedTheme 只能在启动时确定，
         // 运行时切换由 ApplyTheme 通过根元素 RequestedTheme + 画刷换色实现。
         try
@@ -99,6 +108,21 @@ public partial class App : Application
         catch (Exception ex)
         {
             Services.LogService.Instance.Log($"切换主题配色失败：{ex.Message}");
+        }
+    }
+
+    /// <summary>把未处理异常写到程序目录的 crash.log（多次崩溃追加）。</summary>
+    private static void WriteCrashLog(string source, Exception? ex)
+    {
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "crash.log");
+            var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {source}\r\n{ex}\r\n\r\n";
+            File.AppendAllText(path, text);
+        }
+        catch
+        {
+            // 写日志本身失败时不再抛出，避免掩盖原始崩溃
         }
     }
 

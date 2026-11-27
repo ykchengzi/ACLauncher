@@ -42,6 +42,29 @@ public class DownloadableVersion
     /// <summary>是否可下载（有真实下载地址）。</summary>
     public bool CanDownload => !string.IsNullOrWhiteSpace(DownloadUrl);
 
+    /// <summary>渠道标签（正式版 / 测试版 / 远古版；无类型信息的条目为空）。</summary>
+    [JsonIgnore]
+    public string ChannelLabel => VersionType switch
+    {
+        "snapshot" => "测试版",
+        "old_beta" or "old_alpha" => "远古版",
+        "release" => "正式版",
+        _ => "",
+    };
+
+    /// <summary>是否显示渠道标签。</summary>
+    [JsonIgnore]
+    public bool HasChannelLabel => ChannelLabel.Length > 0;
+
+    /// <summary>渠道图标文件名（Blocks\ 下的方块贴图）。</summary>
+    [JsonIgnore]
+    public string IconFile => VersionType switch
+    {
+        "snapshot" => "command_block.png",
+        "old_beta" or "old_alpha" => "cobblestone.png",
+        _ => "grass_block.png",
+    };
+
     /// <summary>是否已安装到本地。</summary>
     [JsonIgnore]
     public bool Installed { get; set; }

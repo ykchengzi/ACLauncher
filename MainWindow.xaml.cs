@@ -204,6 +204,16 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// 跳转到「下载」页的指定分区（Game / Pack / Mod / Resourcepack / Shader）。
+    /// 供版本管理页的“去下载模组”等入口使用。
+    /// </summary>
+    public async Task NavigateToDownloadSectionAsync(string section)
+    {
+        NavigateTo("Download");
+        await _versionDownloadViewModel.EnterSectionAsync(section);
+    }
+
     /// <summary>按 Tag 导航内容 Frame（SelectionChanged 与强制刷新共用）。</summary>
     private void NavigateFrame(string tag)
     {

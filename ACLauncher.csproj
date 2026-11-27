@@ -60,6 +60,8 @@
       <Content Include="Resources\ACLauncher.png" Link="ACLauncher.png" CopyToOutputDirectory="PreserveNewest" />
       <!-- 离线账户默认皮肤头像（Steve / Alex / Ari / Efe / Kai / Makena / Noor / Sunny / Zuri 的头部） -->
       <Content Include="Resources\Skins\*.png" Link="Skins\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <!-- 方块 3D 等距图标（tools\make_block_icons.py 生成，512×512 透明底） -->
+      <Content Include="Resources\Blocks\*.png" Link="Blocks\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
       <!-- 第三方许可声明（7-Zip / java_launch_wrapper 等） -->
       <Content Include="licenses\*.txt" Link="licenses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
       <!-- 本项目许可证（GPL-3.0）：分发二进制时需随附许可全文 -->
