@@ -224,39 +224,62 @@ public class YggdrasilService
 
         try
         {
-            var body = new
-            {
-                accessToken = account.AccessToken,
-                clientToken = account.RefreshToken,
-                requestUser = false,
-            };
-            using var request = new HttpRequestMessage(HttpMethod.Post,
-                account.AuthServer.TrimEnd('/') + "/authserver/refresh");
-            request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-            request.Headers.UserAgent.ParseAdd("ACLauncher/0.99.3");
+            // 注意：LittleSkin 等服务器要求刷新时显式指定角色（selectedProfile），
+            // 不带会返回 400 “访问令牌未绑定角色，请在刷新时指定角色”。
+            // 首次尝试带角色；若服务器不接受该角色（例如角色已改绑），再退回不带角色重试。
+            var withProfile = await RefreshOnceAsync(account, includeProfile: true, ct);
+            if (withProfile) return true;
 
-            using var response = await Http.SendAsync(request, ct);
-            if (!response.IsSuccessStatusCode) return false;
-
-            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
-            var root = doc.RootElement;
-            if (root.TryGetProperty("accessToken", out var at) && at.GetString() is { Length: > 0 } token)
-            {
-                account.AccessToken = token;
-            }
-            if (root.TryGetProperty("selectedProfile", out var sel) && sel.ValueKind == JsonValueKind.Object)
-            {
-                if (sel.TryGetProperty("id", out var idEl) && idEl.GetString() is { Length: > 0 } id)
-                    account.Uuid = id;
-                if (sel.TryGetProperty("name", out var nEl) && nEl.GetString() is { Length: > 0 } n)
-                    account.PlayerName = n;
-            }
-            return true;
+            return await RefreshOnceAsync(account, includeProfile: false, ct);
         }
         catch
         {
             return false;
         }
+    }
+
+    /// <summary>执行一次 refresh 请求。</summary>
+    private async Task<bool> RefreshOnceAsync(Account account, bool includeProfile, CancellationToken ct)
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["accessToken"] = account.AccessToken,
+            ["clientToken"] = account.RefreshToken,
+            ["requestUser"] = false,
+        };
+
+        if (includeProfile && !string.IsNullOrWhiteSpace(account.Uuid))
+        {
+            payload["selectedProfile"] = new { id = account.Uuid, name = account.PlayerName };
+        }
+
+        using var request = new HttpRequestMessage(HttpMethod.Post,
+            account.AuthServer.TrimEnd('/') + "/authserver/refresh");
+        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        request.Headers.UserAgent.ParseAdd("ACLauncher/0.99.5");
+
+        using var response = await Http.SendAsync(request, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync(ct);
+            LogService.Instance.Log($"外置登录 refresh 失败（HTTP {(int)response.StatusCode}，带角色={includeProfile}）：{ParseYggdrasilError(error, error)}");
+            return false;
+        }
+
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+        var root = doc.RootElement;
+        if (root.TryGetProperty("accessToken", out var at) && at.GetString() is { Length: > 0 } token)
+        {
+            account.AccessToken = token;
+        }
+        if (root.TryGetProperty("selectedProfile", out var sel) && sel.ValueKind == JsonValueKind.Object)
+        {
+            if (sel.TryGetProperty("id", out var idEl) && idEl.GetString() is { Length: > 0 } id)
+                account.Uuid = id;
+            if (sel.TryGetProperty("name", out var nEl) && nEl.GetString() is { Length: > 0 } n)
+                account.PlayerName = n;
+        }
+        return true;
     }
 
     /// <summary>
@@ -280,7 +303,7 @@ public class YggdrasilService
             request.Content = new StringContent(
                 JsonSerializer.Serialize(new { accessToken = account.AccessToken, clientToken = account.RefreshToken }),
                 Encoding.UTF8, "application/json");
-            request.Headers.UserAgent.ParseAdd("ACLauncher/0.99.3");
+            request.Headers.UserAgent.ParseAdd("ACLauncher/0.99.5");
 
             using var response = await Http.SendAsync(request, ct);
 
@@ -289,8 +312,15 @@ public class YggdrasilService
 
             var status = (int)response.StatusCode;
 
-            // 403：协议规定的“令牌无效”
-            if (status == 403) return false;
+            // 403：令牌无效（协议规定）。但注意有些服务器（如 LittleSkin）
+            // 对“令牌存在但未绑定角色”也返回 403，这种情况 refresh 能救回来，
+            // 所以这里只记录，交给 RefreshAsync 尝试；两者都失败才算真失效。
+            if (status == 403)
+            {
+                var error = await response.Content.ReadAsStringAsync(ct);
+                LogService.Instance.Log($"外置登录：validate 判定令牌无效（{ParseYggdrasilError(error, "403")}），将尝试刷新。");
+                return false;
+            }
 
             // 接口未实现 / 服务端故障 / 其它异常状态：不能据此判定令牌失效
             LogService.Instance.Log($"外置登录：validate 返回 HTTP {status}，跳过令牌校验。");

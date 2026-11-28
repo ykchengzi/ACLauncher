@@ -273,6 +273,54 @@ try
             Environment.ExitCode = ok ? 0 : 2;
         }
     }
+    else if (cmd == "yggrefresh")
+    {
+        // 用 accounts.json 里真实的外置账户验证 validate + refresh 链路
+        // yggrefresh [accountsPath]
+        var path = args.Length > 1 ? args[1] : Path.Combine(AppContext.BaseDirectory, "accounts.json");
+        Console.WriteLine($"ACCOUNTS {path}");
+        var json = File.ReadAllText(path, Encoding.UTF8);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("Accounts", out var list) || list.ValueKind != System.Text.Json.JsonValueKind.Array)
+        {
+            Console.WriteLine("NO_ACCOUNTS");
+            Environment.ExitCode = 1;
+        }
+        else
+        {
+            foreach (var el in list.EnumerateArray())
+            {
+                var typeStr = el.TryGetProperty("Type", out var t) ? t.GetInt32() : -1;
+                if (typeStr != (int)AccountType.Yggdrasil) continue;
+
+                var acct = new Account
+                {
+                    Type = AccountType.Yggdrasil,
+                    PlayerName = el.TryGetProperty("PlayerName", out var n) ? n.GetString() ?? "" : "",
+                    Uuid = el.TryGetProperty("Uuid", out var u) ? u.GetString() ?? "" : "",
+                    AccessToken = el.TryGetProperty("AccessToken", out var a) ? a.GetString() ?? "" : "",
+                    RefreshToken = el.TryGetProperty("RefreshToken", out var r) ? r.GetString() ?? "" : "",
+                    AuthServer = el.TryGetProperty("AuthServer", out var s) ? s.GetString() ?? "" : "",
+                    AuthServerName = el.TryGetProperty("AuthServerName", out var sn) ? sn.GetString() ?? "" : "",
+                };
+
+                Console.WriteLine($"--- {acct.PlayerName} @ {acct.AuthServerName}");
+                var valid = await YggdrasilService.Instance.ValidateAsync(acct);
+                Console.WriteLine($"  VALIDATE {valid}");
+                if (valid) { Console.WriteLine("  OK (无需刷新)"); continue; }
+
+                var refreshed = await YggdrasilService.Instance.RefreshAsync(acct);
+                Console.WriteLine($"  REFRESH {refreshed}");
+                if (refreshed)
+                {
+                    Console.WriteLine($"  NEW_TOKEN_LEN {acct.AccessToken.Length}");
+                    Console.WriteLine($"  PROFILE {acct.PlayerName} ({acct.Uuid})");
+                    var valid2 = await YggdrasilService.Instance.ValidateAsync(acct);
+                    Console.WriteLine($"  VALIDATE_AFTER_REFRESH {valid2}");
+                }
+            }
+        }
+    }
     else if (cmd == "loader")
     {
         // 加载器版本解析：loader <mc> <fabric|forge|neoforge>
