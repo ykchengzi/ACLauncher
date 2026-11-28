@@ -69,7 +69,7 @@ public static class VersionIconService
     {
         "Fabric" => "fabric.png",
         "Forge" => "forge.png",
-        "NeoForge" => "forge.png",
+        "NeoForge" => "neoforge.png",
         "Quilt" => "quilt.png",
         _ => null,
     };
