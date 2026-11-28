@@ -282,6 +282,7 @@ public class VersionManageViewModel : ViewModelBase
         {
             var modsDir = ModsDir;
             var savesDir = SavesDir;
+            var hasLoader = HasLoader;
             var stats = await Task.Run(() =>
             {
                 var size = "--";
@@ -298,9 +299,12 @@ public class VersionManageViewModel : ViewModelBase
                 var mods = "--";
                 try
                 {
-                    mods = Directory.Exists(modsDir)
-                        ? $"{Directory.EnumerateFiles(modsDir, "*.jar").Count()} 个"
-                        : "无 mods 目录";
+                    // 原版不加载 mods，显示为「无」而不是共享目录里的文件数
+                    mods = !hasLoader
+                        ? "无（原版）"
+                        : Directory.Exists(modsDir)
+                            ? $"{Directory.EnumerateFiles(modsDir, "*.jar").Count()} 个"
+                            : "无 mods 目录";
                 }
                 catch { }
 
@@ -513,17 +517,27 @@ public class VersionManageViewModel : ViewModelBase
         });
     }
 
-    /// <summary>重新扫描 mods 目录。</summary>
+    /// <summary>重新扫描 mods 目录（原版不加载 mods，直接留空）。</summary>
     public async Task RefreshModsAsync()
     {
+        if (!HasLoader)
+        {
+            Mods.Clear();
+            SelectedMod = null;
+            ModsText = "无（原版）";
+            OnPropertyChanged(nameof(ModsEmptyVisibility));
+            return;
+        }
+
+        var modsDir = ModsDir;
         var items = await Task.Run(() =>
         {
             var list = new List<InstalledModItem>();
             try
             {
-                if (Directory.Exists(ModsDir))
+                if (Directory.Exists(modsDir))
                 {
-                    foreach (var f in new DirectoryInfo(ModsDir).EnumerateFiles("*.jar")
+                    foreach (var f in new DirectoryInfo(modsDir).EnumerateFiles("*.jar")
                                  .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase))
                     {
                         list.Add(new InstalledModItem

@@ -186,13 +186,15 @@ public class SelectVersionViewModel : ViewModelBase
             var installed = _configService.GetInstalledVersions();
             foreach (var id in installed)
             {
-                var modsCount = CountMods(id);
+                var loaderLabel = _configService.GetVersionLoaderLabel(id);
+                // 原版不加载 mods，不统计模组数（否则未开隔离时会统计到共享 .minecraft/mods 的同一批文件）
+                var modsCount = string.Equals(loaderLabel, "原版", StringComparison.Ordinal) ? 0 : CountMods(id);
                 var channel = VersionChannelService.DetectInstalled(id, _configService.VersionsDirectory);
                 _allVersions.Add(new InstalledVersionItem
                 {
                     Id = id,
                     IsCurrent = string.Equals(id, current, StringComparison.OrdinalIgnoreCase),
-                    LoaderLabel = _configService.GetVersionLoaderLabel(id),
+                    LoaderLabel = loaderLabel,
                     SizeText = $"{_configService.GetVersionSizeMB(id):F0} MB",
                     MinecraftVersion = _configService.GetVersionMinecraftVersion(id),
                     ModsText = modsCount > 0 ? $"{modsCount} 个模组" : "",
