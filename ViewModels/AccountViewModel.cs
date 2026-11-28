@@ -211,93 +211,153 @@ public class AccountViewModel : ViewModelBase
     private async Task ShowExternalLoginDialogAsync(XamlRoot xamlRoot, YggdrasilServer server,
         string title, string primaryText)
     {
-        var emailBox = new TextBox { PlaceholderText = "邮箱 / 用户名" };
-        var passwordBox = new PasswordBox { PlaceholderText = "密码" };
-        var hint = new TextBlock
+        // 上次记住的账号 / 密码（按服务器区分）
+        var saved = YggdrasilService.Instance.GetSavedCredentials(server.ApiRoot);
+        var savedAccount = saved?.Account ?? "";
+        var savedPassword = saved?.Password ?? "";
+
+        // 输入内容在失败后保留：循环重开对话框时复用同一个输入状态
+        var email = savedAccount;
+        var password = savedPassword;
+
+        while (true)
         {
-            Text = $"登录 {server.Name}（{server.ApiRoot}）",
-            FontSize = 12,
-            TextWrapping = TextWrapping.Wrap,
-            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
-        };
-
-        var dialog = new ContentDialog
-        {
-            Title = title,
-            Content = new StackPanel
+            var emailBox = new TextBox
             {
-                Spacing = 10,
-                MinWidth = 340,
-                Children = { hint, emailBox, passwordBox },
-            },
-            PrimaryButtonText = primaryText,
-            CloseButtonText = "取消",
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = xamlRoot,
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
-
-        try
-        {
-            var auth = await YggdrasilService.Instance.AuthenticateAsync(server, emailBox.Text, passwordBox.Password);
-
-            if (auth.Profiles.Count == 0)
+                PlaceholderText = "邮箱 / 用户名",
+                Text = email,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+            };
+            var passwordBox = new PasswordBox
             {
-                await ShowErrorAsync(xamlRoot,
-                    $"登录成功，但该账号在 {server.Name} 尚未创建角色。请先到网站创建一个 Minecraft 角色后再登录。");
-                return;
-            }
+                PlaceholderText = "密码",
+                Password = password,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+            };
 
-            // 多角色：让玩家自己选择要用的角色
-            var profile = auth.Profiles[0];
-            if (auth.Profiles.Count > 1)
+            var rememberAccount = new CheckBox
             {
-                var picker = new ComboBox
+                Content = "记住账户",
+                IsChecked = savedAccount.Length > 0,
+            };
+            var rememberPassword = new CheckBox
+            {
+                Content = "记住密码",
+                IsChecked = savedPassword.Length > 0,
+                Margin = new Thickness(0, -4, 0, 0),
+            };
+
+            var hint = new TextBlock
+            {
+                Text = $"登录 {server.Name}（{server.ApiRoot}）",
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
+            };
+
+            var dialog = new ContentDialog
+            {
+                Title = title,
+                Content = new StackPanel
                 {
-                    MinWidth = 300,
-                    IsEditable = false,
-                    ItemsSource = auth.Profiles.Select(p => $"{p.Name}（{p.Id[..Math.Min(8, p.Id.Length)]}…）").ToList(),
-                    SelectedIndex = 0,
-                };
-                var pickDialog = new ContentDialog
-                {
-                    Title = $"选择要使用的角色 · {server.Name}",
-                    Content = new StackPanel
+                    Spacing = 10,
+                    MinWidth = 340,
+                    Children =
                     {
-                        Spacing = 10,
-                        Children =
+                        hint,
+                        emailBox,
+                        passwordBox,
+                        new StackPanel
                         {
-                            new TextBlock
-                            {
-                                Text = "该账号下有多个角色，请选择本次登录要使用的角色。",
-                                TextWrapping = TextWrapping.Wrap,
-                                FontSize = 12,
-                                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
-                            },
-                            picker,
+                            Orientation = Orientation.Horizontal,
+                            Spacing = 16,
+                            Children = { rememberAccount, rememberPassword },
                         },
                     },
-                    PrimaryButtonText = "使用该角色",
-                    CloseButtonText = "取消",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = xamlRoot,
-                };
-                if (await pickDialog.ShowAsync() != ContentDialogResult.Primary) return;
-                var index = picker.SelectedIndex;
-                if (index < 0 || index >= auth.Profiles.Count) return;
-                profile = auth.Profiles[index];
-            }
+                },
+                PrimaryButtonText = primaryText,
+                CloseButtonText = "取消",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = xamlRoot,
+            };
 
-            var account = YggdrasilService.Instance.CreateAccount(server, auth, profile);
-            await _authService.SaveExternalAccountAsync(account);
-            Refresh();
-            LogService.Instance.Log($"外置登录成功：{account.PlayerName}（{server.Name}）");
-        }
-        catch (Exception ex)
-        {
-            await ShowErrorAsync(xamlRoot, ex.Message);
-            LogService.Instance.Log($"外置登录失败：{ex.Message}");
+            // 记住密码依赖记住账户：取消勾选账户时一并取消密码
+            rememberAccount.Unchecked += (_, _) => rememberPassword.IsChecked = false;
+            rememberPassword.Checked += (_, _) => rememberAccount.IsChecked = true;
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+            // 记录本次输入，登录失败重开时原样带回
+            email = emailBox.Text;
+            password = passwordBox.Password;
+
+            try
+            {
+                var auth = await YggdrasilService.Instance.AuthenticateAsync(server, email, password);
+
+                if (auth.Profiles.Count == 0)
+                {
+                    await ShowErrorAsync(xamlRoot,
+                        $"登录成功，但该账号在 {server.Name} 尚未创建角色。请先到网站创建一个 Minecraft 角色后再登录。");
+                    return;
+                }
+
+                // 多角色：让玩家自己选择要用的角色
+                var profile = auth.Profiles[0];
+                if (auth.Profiles.Count > 1)
+                {
+                    var picker = new ComboBox
+                    {
+                        MinWidth = 300,
+                        IsEditable = false,
+                        ItemsSource = auth.Profiles.Select(p => $"{p.Name}（{p.Id[..Math.Min(8, p.Id.Length)]}…）").ToList(),
+                        SelectedIndex = 0,
+                    };
+                    var pickDialog = new ContentDialog
+                    {
+                        Title = $"选择要使用的角色 · {server.Name}",
+                        Content = new StackPanel
+                        {
+                            Spacing = 10,
+                            Children =
+                            {
+                                new TextBlock
+                                {
+                                    Text = "该账号下有多个角色，请选择本次登录要使用的角色。",
+                                    TextWrapping = TextWrapping.Wrap,
+                                    FontSize = 12,
+                                    Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
+                                },
+                                picker,
+                            },
+                        },
+                        PrimaryButtonText = "使用该角色",
+                        CloseButtonText = "取消",
+                        DefaultButton = ContentDialogButton.Primary,
+                        XamlRoot = xamlRoot,
+                    };
+                    if (await pickDialog.ShowAsync() != ContentDialogResult.Primary) return;
+                    var index = picker.SelectedIndex;
+                    if (index < 0 || index >= auth.Profiles.Count) return;
+                    profile = auth.Profiles[index];
+                }
+
+                // 登录成功：按勾选情况保存账户 / 密码
+                YggdrasilService.Instance.SaveCredentials(server.ApiRoot, email, password,
+                    rememberAccount.IsChecked == true, rememberPassword.IsChecked == true);
+
+                var account = YggdrasilService.Instance.CreateAccount(server, auth, profile);
+                await _authService.SaveExternalAccountAsync(account);
+                Refresh();
+                LogService.Instance.Log($"外置登录成功：{account.PlayerName}（{server.Name}）");
+                return;
+            }
+            catch (Exception ex)
+            {
+                // 失败：提示后重新打开对话框，账号密码保持原样
+                await ShowErrorAsync(xamlRoot, ex.Message);
+                LogService.Instance.Log($"外置登录失败：{ex.Message}");
+            }
         }
     }
 

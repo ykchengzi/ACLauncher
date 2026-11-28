@@ -48,6 +48,65 @@ public class YggdrasilService
 
     private static readonly HttpClient Http = new(HttpFactory.CreateHandler()) { Timeout = TimeSpan.FromSeconds(20) };
 
+    // ===================== 记住账户 / 记住密码 =====================
+
+    /// <summary>读取某服务器记住的登录信息；没有则返回 null。</summary>
+    public SavedYggdrasilLogin? GetSavedCredentials(string apiRoot)
+    {
+        try
+        {
+            var settings = SettingsService.Instance.Load();
+            var key = NormalizeRoot(apiRoot);
+            if (settings.SavedYggdrasilLogins is not { } map) return null;
+
+            foreach (var pair in map)
+            {
+                if (string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase)) return pair.Value;
+            }
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 保存登录信息：记住账户必定保存，密码仅在 rememberPassword 为 true 时保存。
+    /// 未勾选记住账户时清除该服务器的记录。
+    /// </summary>
+    public void SaveCredentials(string apiRoot, string account, string password,
+        bool rememberAccount, bool rememberPassword)
+    {
+        try
+        {
+            var settings = SettingsService.Instance.Load();
+            settings.SavedYggdrasilLogins ??= new Dictionary<string, SavedYggdrasilLogin>(StringComparer.OrdinalIgnoreCase);
+
+            var key = NormalizeRoot(apiRoot);
+            var existingKey = settings.SavedYggdrasilLogins.Keys
+                .FirstOrDefault(k => string.Equals(k, key, StringComparison.OrdinalIgnoreCase));
+            if (existingKey is not null) settings.SavedYggdrasilLogins.Remove(existingKey);
+
+            if (rememberAccount)
+            {
+                settings.SavedYggdrasilLogins[key] = new SavedYggdrasilLogin
+                {
+                    Account = account,
+                    Password = rememberPassword ? password : "",
+                };
+            }
+
+            SettingsService.Instance.Save(settings);
+        }
+        catch (Exception ex)
+        {
+            LogService.Instance.Log($"保存外置登录信息失败：{ex.Message}");
+        }
+    }
+
+    private static string NormalizeRoot(string apiRoot) => apiRoot.Trim().TrimEnd('/');
+
     /// <summary>
     /// 用账号密码登录外置服务器，返回令牌与该账号下的全部角色（不挑选角色）。
     /// </summary>
@@ -200,7 +259,13 @@ public class YggdrasilService
         }
     }
 
-    /// <summary>校验令牌是否仍然有效。</summary>
+    /// <summary>
+    /// 校验令牌是否仍然有效。
+    /// 注意：不少第三方外置登录源没有实现 /authserver/validate（返回 404 / 405 / 501），
+    /// 这并不代表令牌失效，因此只有明确的“令牌无效”（403）才返回 false；
+    /// 接口不存在、网络异常、服务端故障等情况返回 true（交给游戏内 authlib-injector 判定），
+    /// 避免出现“重新登录也没用、始终提示令牌失效”的误报。
+    /// </summary>
     public async Task<bool> ValidateAsync(Account account, CancellationToken ct = default)
     {
         if (account.Type != AccountType.Yggdrasil || string.IsNullOrWhiteSpace(account.AccessToken))
@@ -218,11 +283,24 @@ public class YggdrasilService
             request.Headers.UserAgent.ParseAdd("ACLauncher/0.99.3");
 
             using var response = await Http.SendAsync(request, ct);
-            return response.IsSuccessStatusCode;
+
+            // 2xx：令牌有效
+            if (response.IsSuccessStatusCode) return true;
+
+            var status = (int)response.StatusCode;
+
+            // 403：协议规定的“令牌无效”
+            if (status == 403) return false;
+
+            // 接口未实现 / 服务端故障 / 其它异常状态：不能据此判定令牌失效
+            LogService.Instance.Log($"外置登录：validate 返回 HTTP {status}，跳过令牌校验。");
+            return true;
         }
-        catch
+        catch (Exception ex)
         {
-            return false;
+            // 网络异常同样不代表令牌失效
+            LogService.Instance.Log($"外置登录：validate 请求失败（{ex.Message}），跳过令牌校验。");
+            return true;
         }
     }
 

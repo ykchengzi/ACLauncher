@@ -127,4 +127,21 @@ public class AppSettings
     [JsonIgnore]
     public string? EffectiveJavaPath =>
         !string.IsNullOrWhiteSpace(JavaPath) && File.Exists(JavaPath) ? JavaPath : null;
+
+    /// <summary>
+    /// 外置登录记住的账号与密码：服务器 API 根地址 → 登录信息。
+    /// 仅在用户勾选「记住账户」/「记住密码」时写入。
+    /// </summary>
+    public Dictionary<string, SavedYggdrasilLogin> SavedYggdrasilLogins { get; set; }
+        = new(StringComparer.OrdinalIgnoreCase);
+}
+
+/// <summary>外置登录记住的账号与密码。</summary>
+public sealed class SavedYggdrasilLogin
+{
+    /// <summary>上次成功登录使用的账号（邮箱 / 用户名）。</summary>
+    public string Account { get; set; } = "";
+
+    /// <summary>记住的密码（仅在勾选“记住密码”时保存，否则为空）。</summary>
+    public string Password { get; set; } = "";
 }

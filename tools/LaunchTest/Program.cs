@@ -223,6 +223,29 @@ try
         var fake = new Account { Type = AccountType.Yggdrasil, AuthServer = YggdrasilService.LittleSkin.ApiRoot, AuthServerName = "LittleSkin", AccessToken = "invalid-token", RefreshToken = "invalid-client" };
         Console.WriteLine("YGG_VALIDATE " + await YggdrasilService.Instance.ValidateAsync(fake));
         Console.WriteLine("YGG_REFRESH " + await YggdrasilService.Instance.RefreshAsync(fake));
+
+        // 未实现 validate 的第三方源（返回 404）不应被判定为令牌失效
+        var noValidate = new Account
+        {
+            Type = AccountType.Yggdrasil,
+            AuthServer = "https://nonexistent.invalid/api/yggdrasil",
+            AuthServerName = "NoValidate",
+            AccessToken = "some-token",
+            RefreshToken = "some-client",
+        };
+        Console.WriteLine("YGG_VALIDATE_NO_ENDPOINT " + await YggdrasilService.Instance.ValidateAsync(noValidate));
+
+        // 记住账户 / 密码读写
+        const string testRoot = "https://example.test/api/yggdrasil";
+        YggdrasilService.Instance.SaveCredentials(testRoot, "user@example.com", "secret", true, true);
+        var saved = YggdrasilService.Instance.GetSavedCredentials(testRoot);
+        Console.WriteLine($"YGG_REMEMBER both -> account={saved?.Account} password={saved?.Password}");
+        YggdrasilService.Instance.SaveCredentials(testRoot, "user@example.com", "secret", true, false);
+        saved = YggdrasilService.Instance.GetSavedCredentials(testRoot);
+        Console.WriteLine($"YGG_REMEMBER account-only -> account={saved?.Account} password='{saved?.Password}'");
+        YggdrasilService.Instance.SaveCredentials(testRoot, "user@example.com", "secret", false, false);
+        saved = YggdrasilService.Instance.GetSavedCredentials(testRoot);
+        Console.WriteLine($"YGG_REMEMBER none -> {(saved is null ? "cleared" : "still present")}");
     }
     else if (cmd == "updatecheck")
     {
