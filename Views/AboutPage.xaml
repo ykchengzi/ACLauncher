@@ -38,10 +38,12 @@
                                    FontSize="15" FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
                                    Foreground="{ThemeResource McOrangeDeepBrush}" />
-                        <TextBlock Text="橙猫生存服务器 专属启动器"
-                                   FontSize="16"
+                        <TextBlock FontSize="16"
                                    HorizontalAlignment="Center"
-                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}">
+                            <Run Text="一个普普通通的启动器" />
+                            <Run Text="（但不过可能更适合橙猫服(?)）" TextDecorations="Strikethrough" />
+                        </TextBlock>
                         <TextBlock x:Name="VersionText"
                                    HorizontalAlignment="Center"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />

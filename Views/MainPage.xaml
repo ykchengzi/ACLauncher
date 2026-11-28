@@ -47,9 +47,12 @@
                 <TextBlock Text="{x:Bind ViewModel.WelcomeText, Mode=OneWay}"
                            FontSize="21" FontWeight="SemiBold" />
             </StackPanel>
-            <TextBlock Text="今天也来橙猫服玩一会儿吧"
+            <TextBlock Text="{x:Bind ViewModel.DailyQuote, Mode=OneWay}"
+                       Visibility="{x:Bind ViewModel.DailyQuoteVisibility, Mode=OneWay}"
                        FontSize="12"
                        Margin="15,0,0,0"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTipService.ToolTip="每日一言 · dddn.net"
                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
         </StackPanel>
 

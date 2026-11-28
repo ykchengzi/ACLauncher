@@ -234,6 +234,36 @@ public class MainViewModel : ViewModelBase
     /// <summary>欢迎行主文字（随账户变化）。</summary>
     public string WelcomeText => $"欢迎回来，{CurrentPlayer}";
 
+    private string _dailyQuote = "";
+
+    /// <summary>欢迎行副标题：每日一言（取不到时为空）。</summary>
+    public string DailyQuote
+    {
+        get => _dailyQuote;
+        private set
+        {
+            if (SetProperty(ref _dailyQuote, value)) OnPropertyChanged(nameof(DailyQuoteVisibility));
+        }
+    }
+
+    public Visibility DailyQuoteVisibility =>
+        string.IsNullOrWhiteSpace(_dailyQuote) ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>后台获取每日一言（失败则保持隐藏，不影响主页）。</summary>
+    private async Task RefreshDailyQuoteAsync()
+    {
+        try
+        {
+            var quote = await DailyQuoteService.GetTodayAsync();
+            if (string.IsNullOrWhiteSpace(quote)) return;
+            _dispatcher.TryEnqueue(() => DailyQuote = quote);
+        }
+        catch (Exception ex)
+        {
+            LogService.Instance.Log($"加载每日一言失败：{ex.Message}");
+        }
+    }
+
     /// <summary>是否已安装任意版本（决定"游戏版本"行按钮是"去下载"还是"选择版本"）。</summary>
     public bool HasAnyVersion
     {
@@ -356,10 +386,11 @@ public class MainViewModel : ViewModelBase
         // 刷新"是否已安装版本"（决定主页版本按钮是"去下载"还是"选择版本"）
         HasAnyVersion = _configService.GetInstalledVersions().Count > 0;
 
-        // 后台填充信息卡：服务器状态 / 版本标签 / Java 摘要 / 账户头像（不阻塞主页显示）
+        // 后台填充信息卡：服务器状态 / 版本标签 / Java 摘要 / 账户头像 / 每日一言（不阻塞主页显示）
         _ = RefreshServerStatusAsync();
         _ = RefreshVersionTagsAsync();
         _ = RefreshJavaSummaryAsync();
+        _ = RefreshDailyQuoteAsync();
         _ = RefreshCurrentHeadAsync();
 
         // 日志速览：先带出已有日志的最后 5 条

@@ -2,7 +2,7 @@
     x:Class="ACLauncher.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="橙猫生存服务器 - ACLauncher v0.99.3-beta 内测版">
+    Title="ACLauncher v0.99.3-beta 内测版">
 
     <!-- 左侧导航栏：主页 / 账户 / 选择版本 / 版本下载 / 网络设置 / 设置 / 日志 / 关于（可收起为图标栏） -->
     <NavigationView x:Name="NavView"
