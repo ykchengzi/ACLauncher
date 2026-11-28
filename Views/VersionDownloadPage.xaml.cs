@@ -496,6 +496,13 @@ public sealed partial class VersionDownloadPage : Page
         ViewModel.SelectedProjectVersion = VersionList.SelectedItem as ModrinthVersionItem;
     }
 
+    /// <summary>展开 / 收起项目简介。</summary>
+    private void ToggleDescription_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null) return;
+        ViewModel.DescriptionExpanded = !ViewModel.DescriptionExpanded;
+    }
+
     /// <summary>浏览保存位置并下载所选版本：默认定位到当前版本（已装加载器）的 mods 目录。</summary>
     private async void BrowseInstall_Click(object sender, RoutedEventArgs e)
     {

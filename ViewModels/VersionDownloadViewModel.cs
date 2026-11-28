@@ -29,7 +29,8 @@ public class VersionDownloadViewModel : ViewModelBase
             foreach (var name in new[] { nameof(GameVisible), nameof(PackVisible), nameof(ContentVisible),
                          nameof(PackSearchVisible), nameof(PackSourceBarVisible),
                          nameof(ContentHeaderText), nameof(IsModSection), nameof(IsPackSection),
-                         nameof(VersionFilterVisible), nameof(BrowseOnlyVisible) })
+                         nameof(VersionFilterVisible), nameof(BrowseOnlyVisible),
+                         nameof(DetailKindText), nameof(DetailMetaText), nameof(DetailActionText) })
             {
                 OnPropertyChanged(name);
             }
@@ -443,7 +444,13 @@ public class VersionDownloadViewModel : ViewModelBase
     public ModrinthVersionItem? SelectedProjectVersion
     {
         get => _selectedProjectVersion;
-        set => SetProperty(ref _selectedProjectVersion, value);
+        set
+        {
+            if (SetProperty(ref _selectedProjectVersion, value))
+            {
+                OnPropertyChanged(nameof(DetailSelectionText));
+            }
+        }
     }
 
     private bool _isDetailOpen;
@@ -455,10 +462,14 @@ public class VersionDownloadViewModel : ViewModelBase
         private set
         {
             if (!SetProperty(ref _isDetailOpen, value)) return;
-            OnPropertyChanged(nameof(ListVisible));
-            OnPropertyChanged(nameof(DetailVisible));
-            OnPropertyChanged(nameof(DetailTitleText));
-            OnPropertyChanged(nameof(DetailDescriptionText));
+            foreach (var name in new[] { nameof(ListVisible), nameof(DetailVisible),
+                         nameof(DetailTitleText), nameof(DetailDescriptionText),
+                         nameof(DetailIconUri), nameof(HasDetailIcon), nameof(DetailMetaText),
+                         nameof(DetailVersionCountText), nameof(DetailSelectionText),
+                         nameof(DetailKindText), nameof(DetailActionText), nameof(CanExpandDescription) })
+            {
+                OnPropertyChanged(name);
+            }
         }
     }
 
@@ -476,6 +487,110 @@ public class VersionDownloadViewModel : ViewModelBase
     /// <summary>详情简介。</summary>
     public string DetailDescriptionText => SelectedProject?.DisplayDescription ?? "";
 
+    /// <summary>详情页项目图标。</summary>
+    public Uri? DetailIconUri => SelectedProject?.IconUri;
+
+    /// <summary>是否有项目图标。</summary>
+    public bool HasDetailIcon => DetailIconUri is not null;
+
+    /// <summary>项目类型中文名（模组 / 资源包 / 光影 / 整合包）。</summary>
+    public string DetailKindText => SelectedSection switch
+    {
+        "Resourcepack" => "资源包",
+        "Shader" => "光影",
+        "Pack" => "整合包",
+        _ => "模组",
+    };
+
+    /// <summary>详情副标题：类型 · 下载量。</summary>
+    public string DetailMetaText
+    {
+        get
+        {
+            var project = SelectedProject;
+            if (project is null) return DetailKindText;
+
+            return project.Downloads > 0
+                ? $"{DetailKindText}  ·  {project.DownloadsText}"
+                : DetailKindText;
+        }
+    }
+
+    /// <summary>版本分组数量文本。</summary>
+    public string DetailVersionCountText =>
+        ProjectVersionGroups.Count == 0 ? "" : $"共 {ProjectVersionGroups.Count} 个游戏版本";
+
+    /// <summary>当前选中文件的摘要（版本号 · 通道 · 大小 · 日期）。</summary>
+    public string DetailSelectionText
+    {
+        get
+        {
+            var version = SelectedProjectVersion;
+            if (version is null) return "请选择要下载的版本";
+
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(version.VersionNumber)) parts.Add($"v{version.VersionNumber}");
+            parts.Add(version.ChannelText);
+            if (!string.IsNullOrEmpty(version.SizeText)) parts.Add(version.SizeText);
+            if (!string.IsNullOrEmpty(version.DateText)) parts.Add(version.DateText);
+            return string.Join("  ·  ", parts);
+        }
+    }
+
+    /// <summary>底部主按钮文字（随分区变化）。</summary>
+    public string DetailActionText => SelectedSection switch
+    {
+        "Pack" => "安装整合包",
+        "Resourcepack" => "下载并放入 resourcepacks",
+        "Shader" => "下载并放入 shaderpacks",
+        _ => "下载并放入 mods",
+    };
+
+    private bool _isDetailLoading;
+
+    /// <summary>是否正在拉取版本列表。</summary>
+    public bool IsDetailLoading
+    {
+        get => _isDetailLoading;
+        private set
+        {
+            if (SetProperty(ref _isDetailLoading, value))
+            {
+                OnPropertyChanged(nameof(DetailLoadingVisibility));
+                OnPropertyChanged(nameof(DetailListVisibility));
+            }
+        }
+    }
+
+    public Microsoft.UI.Xaml.Visibility DetailLoadingVisibility =>
+        IsDetailLoading ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+    public Microsoft.UI.Xaml.Visibility DetailListVisibility =>
+        IsDetailLoading ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
+
+    private bool _descriptionExpanded;
+
+    /// <summary>简介是否展开（收起时最多显示 3 行）。</summary>
+    public bool DescriptionExpanded
+    {
+        get => _descriptionExpanded;
+        set
+        {
+            if (SetProperty(ref _descriptionExpanded, value))
+            {
+                OnPropertyChanged(nameof(DescriptionMaxLines));
+                OnPropertyChanged(nameof(DescriptionToggleText));
+            }
+        }
+    }
+
+    public int DescriptionMaxLines => DescriptionExpanded ? 0 : 3;
+
+    public string DescriptionToggleText => DescriptionExpanded ? "收起" : "展开全文";
+
+    /// <summary>简介是否足够长、需要“展开全文”按钮。</summary>
+    public bool CanExpandDescription => DetailDescriptionText.Length > 100;
+
     /// <summary>
     /// 进入项目详情：加载全部版本，按游戏版本分组（新的在上），
     /// 同一游戏版本的多个文件合并到同一分组，下拉框选择版本后显示文件列表。
@@ -488,6 +603,9 @@ public class VersionDownloadViewModel : ViewModelBase
         ProjectVersionGroups.Clear();
         GroupFiles.Clear();
         SelectedVersionGroup = null;
+        DescriptionExpanded = false;
+        IsDetailLoading = true;
+        OnPropertyChanged(nameof(DetailVersionCountText));
         Status = "正在获取版本列表...";
         try
         {
@@ -520,14 +638,19 @@ public class VersionDownloadViewModel : ViewModelBase
             }
 
             SelectedVersionGroup = ProjectVersionGroups.FirstOrDefault();
+            OnPropertyChanged(nameof(DetailVersionCountText));
             Status = ProjectVersionGroups.Count == 0
                 ? "该项目没有可用版本"
-                : $"共 {ProjectVersionGroups.Count} 个游戏版本，选择版本与文件后点“浏览”保存位置";
+                : $"共 {ProjectVersionGroups.Count} 个游戏版本，选择版本与文件后用下方按钮下载";
         }
         catch (Exception ex)
         {
             Status = $"获取版本列表失败：{ex.Message}";
             LogService.Instance.Log($"获取版本列表失败：{ex}");
+        }
+        finally
+        {
+            IsDetailLoading = false;
         }
     }
 

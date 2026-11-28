@@ -231,6 +231,17 @@ public class ModrinthService
                 sha1 = sha1El.GetString();
             }
 
+            var fileSize = primary.Value.TryGetProperty("size", out var sizeEl) && sizeEl.TryGetInt64(out var size)
+                ? size
+                : 0;
+
+            DateTimeOffset? publishedAt = null;
+            if (ver.TryGetProperty("date_published", out var dateEl) &&
+                DateTimeOffset.TryParse(dateEl.GetString(), out var published))
+            {
+                publishedAt = published;
+            }
+
             var gameVersions = new List<string>();
             if (ver.TryGetProperty("game_versions", out var gv) && gv.ValueKind == JsonValueKind.Array)
             {
@@ -249,6 +260,8 @@ public class ModrinthService
                 FileUrl = fileUrl,
                 Sha1 = sha1,
                 VersionType = ver.TryGetProperty("version_type", out var vt) ? vt.GetString() ?? "release" : "release",
+                FileSize = fileSize,
+                PublishedAt = publishedAt,
             });
         }
         return result;
@@ -409,6 +422,25 @@ public sealed record ModrinthVersionItem
 
     /// <summary>Modrinth 版本通道：release / beta / alpha。</summary>
     public string VersionType { get; init; } = "release";
+
+    /// <summary>主文件大小（字节，0 表示接口未提供）。</summary>
+    public long FileSize { get; init; }
+
+    /// <summary>版本发布时间。</summary>
+    public DateTimeOffset? PublishedAt { get; init; }
+
+    /// <summary>文件大小展示文本。</summary>
+    [JsonIgnore]
+    public string SizeText => FileSize switch
+    {
+        <= 0 => "",
+        >= 1024 * 1024 => $"{FileSize / 1024.0 / 1024.0:F1} MB",
+        _ => $"{FileSize / 1024.0:F0} KB",
+    };
+
+    /// <summary>发布时间展示文本（yyyy-MM-dd）。</summary>
+    [JsonIgnore]
+    public string DateText => PublishedAt?.ToLocalTime().ToString("yyyy-MM-dd") ?? "";
 
     /// <summary>通道标签：正式版 / 测试版 / 内测版。</summary>
     public string ChannelText => VersionType switch
