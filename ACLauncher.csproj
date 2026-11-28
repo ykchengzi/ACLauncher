@@ -33,10 +33,10 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 
     <!-- 版本号：与 Installer\ACLauncher-Setup.iss 的 MyAppVersion 保持一致 -->
-    <Version>0.99.3</Version>
-    <FileVersion>0.99.3</FileVersion>
-    <AssemblyVersion>0.99.3</AssemblyVersion>
-    <InformationalVersion>0.99.3-beta</InformationalVersion>
+    <Version>0.99.5</Version>
+    <FileVersion>0.99.5</FileVersion>
+    <AssemblyVersion>0.99.5</AssemblyVersion>
+    <InformationalVersion>0.99.5-beta</InformationalVersion>
   </PropertyGroup>
 
   <!-- 非 GUI 测试 harness（tools\LaunchTest）是独立的控制台工程，不参与主程序编译 -->

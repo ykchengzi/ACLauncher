@@ -44,7 +44,17 @@ public class UpdateService
     public static string ManifestUrl { get; set; } =
         "https://raw.githubusercontent.com/ykchengzi/ACLauncher-Update/refs/heads/main/latest.json";
 
+    /// <summary>
+    /// 检查清单用的短超时客户端（清单只有几百字节）。
+    /// 下载安装包另建客户端：59 MB 的包用 10 秒超时必然失败。
+    /// </summary>
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(10) };
+
+    /// <summary>下载安装包用的客户端：整体超时放宽到 30 分钟，靠取消令牌中止。</summary>
+    private static readonly HttpClient DownloadHttp = new(HttpFactory.CreateHandler(TimeSpan.FromSeconds(20)))
+    {
+        Timeout = TimeSpan.FromMinutes(30),
+    };
 
     /// <summary>当前程序版本（读取 exe 文件版本，如 0.99.3）。</summary>
     public string CurrentVersion
@@ -89,12 +99,45 @@ public class UpdateService
     }
 
     /// <summary>
-    /// 下载安装包并运行安装器。返回 false 表示下载失败。
+    /// 下载安装包并运行安装器。返回 false 表示下载或校验失败。
     /// 下载完成后按清单的 SHA-256 校验（清单提供时）。
     /// </summary>
     public async Task<bool> DownloadAndRunAsync(UpdateInfo info,
         IProgress<(long received, long total)>? progress = null,
         CancellationToken ct = default)
+    {
+        var target = await DownloadAndVerifyAsync(info, progress, ct);
+        if (target is null) return false;
+
+        try
+        {
+            // 静默安装：Inno Setup 会自动关闭运行中的旧进程并覆盖安装
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = target,
+                Arguments = "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS",
+                UseShellExecute = true,
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogService.Instance.Log($"启动更新安装器失败：{ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 只下载并校验，不启动安装器（用于验证更新链路）。成功返回安装包路径，失败返回 null。
+    /// </summary>
+    public Task<string?> DownloadVerifyOnlyAsync(UpdateInfo info,
+        IProgress<(long received, long total)>? progress = null,
+        CancellationToken ct = default)
+        => DownloadAndVerifyAsync(info, progress, ct);
+
+    /// <summary>下载安装包到临时目录并校验 SHA-256；成功返回文件路径。</summary>
+    private async Task<string?> DownloadAndVerifyAsync(UpdateInfo info,
+        IProgress<(long received, long total)>? progress, CancellationToken ct)
     {
         var dir = Path.Combine(Path.GetTempPath(), "ACLauncher-Update");
         Directory.CreateDirectory(dir);
@@ -106,8 +149,13 @@ public class UpdateService
             // 只用清单里给出的地址，不做任何镜像替换
             using (var request = new HttpRequestMessage(HttpMethod.Get, info.Url))
             {
-                using var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
-                if (!response.IsSuccessStatusCode) return false;
+                request.Headers.UserAgent.ParseAdd("ACLauncher/0.99.5");
+                using var response = await DownloadHttp.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+                if (!response.IsSuccessStatusCode)
+                {
+                    LogService.Instance.Log($"更新包下载失败：HTTP {(int)response.StatusCode}（{info.Url}）");
+                    return null;
+                }
 
                 var total = response.Content.Headers.ContentLength ?? -1;
                 await using var src = await response.Content.ReadAsStreamAsync(ct);
@@ -134,23 +182,16 @@ public class UpdateService
                 {
                     LogService.Instance.Log($"更新包校验失败（SHA-256 不匹配）：期望 {info.Sha256}，实际 {actual}");
                     try { File.Delete(target); } catch { }
-                    return false;
+                    return null;
                 }
             }
 
-            // 静默安装：Inno Setup 会自动关闭运行中的旧进程并覆盖安装
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = target,
-                Arguments = "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS",
-                UseShellExecute = true,
-            });
-            return true;
+            return target;
         }
         catch (Exception ex)
         {
             LogService.Instance.Log($"下载更新失败：{ex.Message}");
-            return false;
+            return null;
         }
     }
 

@@ -3,7 +3,7 @@
 ; 功能：桌面快捷方式 / 开始菜单 / 任务栏固定（默认勾选）+ .NET 8 与 Windows App Runtime 检测
 
 #define MyAppName "ACLauncher"
-#define MyAppVersion "0.99.3-beta"
+#define MyAppVersion "0.99.5-beta"
 #define MyAppExeName "ACLauncher.exe"
 #define MyAppPublisher "橙猫生存服务器"
 #define SourceDir "E:\Wendang\ACLauncher\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64"

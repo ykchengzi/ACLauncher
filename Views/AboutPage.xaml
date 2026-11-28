@@ -34,7 +34,7 @@
                                    Stretch="Uniform" />
                         </Border>
                         <TextBlock Text="ACLauncher" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" />
-                        <TextBlock Text="v0.99.3-beta 内测版"
+                        <TextBlock Text="v0.99.5-beta 内测版"
                                    FontSize="15" FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
                                    Foreground="{ThemeResource McOrangeDeepBrush}" />

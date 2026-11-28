@@ -256,6 +256,23 @@ try
         if (info is null) Console.WriteLine("NO_UPDATE");
         else Console.WriteLine($"UPDATE version={info.Version} url={info.Url} sha256={(info.Sha256 ?? "-")} mandatory={info.Mandatory}");
     }
+    else if (cmd == "updatedl")
+    {
+        // 完整更新链路验证（不启动安装器）：updatedl
+        // 检查清单 → 下载安装包 → SHA-256 校验
+        Console.WriteLine($"CURRENT {UpdateService.Instance.CurrentVersion} manifest={UpdateService.ManifestUrl}");
+        var info = await UpdateService.Instance.CheckAsync();
+        if (info is null) { Console.WriteLine("NO_UPDATE"); Environment.ExitCode = 1; }
+        else
+        {
+            Console.WriteLine($"UPDATE version={info.Version}");
+            var sw = Stopwatch.StartNew();
+            var path = await UpdateService.Instance.DownloadVerifyOnlyAsync(info);
+            var ok = path is not null;
+            Console.WriteLine($"DOWNLOAD_VERIFY ok={ok} file={path ?? "<null>"} elapsed={sw.Elapsed.TotalSeconds:F1}s");
+            Environment.ExitCode = ok ? 0 : 2;
+        }
+    }
     else if (cmd == "loader")
     {
         // 加载器版本解析：loader <mc> <fabric|forge|neoforge>
