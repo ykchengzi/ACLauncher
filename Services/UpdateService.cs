@@ -38,10 +38,11 @@ public class UpdateService
     public static UpdateService Instance { get; } = new();
 
     /// <summary>
-    /// 更新清单地址。把 latest.json 放到 Cloudflare Pages（或 Worker 静态路由）后，
-    /// 将默认值改成你的实际地址。示例：https://aclauncher.pages.dev/latest.json
+    /// 更新清单地址（独立仓库 ykchengzi/ACLauncher-Update 的 main 分支）。
+    /// 改清单只需提交该仓库，无需重新发版启动器。
     /// </summary>
-    public static string ManifestUrl { get; set; } = "https://aclauncher.pages.dev/latest.json";
+    public static string ManifestUrl { get; set; } =
+        "https://raw.githubusercontent.com/ykchengzi/ACLauncher-Update/refs/heads/main/latest.json";
 
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(10) };
 
