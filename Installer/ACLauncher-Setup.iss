@@ -45,7 +45,7 @@ Name: "{app}"; Permissions: users-modify
 
 [Files]
 ; 启动器全部文件（自包含部署：.NET 与 Windows App SDK 运行时已随程序分发，用户无需另外安装），排除用户数据
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion; Excludes: "config.json,settings.json,accounts.json,.minecraft\*,film_microbiome\*,film_microbiome"
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion; Excludes: "config.json,settings.json,accounts.json,.minecraft\*,film_microbiome\*,film_microbiome,docs\*,docs"
 ; 任务栏固定脚本（安装时解压到临时目录调用，不留在安装目录）
 Source: "pin-taskbar.ps1"; DestDir: "{tmp}"; Flags: dontcopy
 

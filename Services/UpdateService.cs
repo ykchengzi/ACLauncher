@@ -43,9 +43,6 @@ public class UpdateService
     /// </summary>
     public static string ManifestUrl { get; set; } = "https://aclauncher.pages.dev/latest.json";
 
-    /// <summary>安装包备选地址前缀（清单 url 失败时尝试）：gh-proxy 加速。</summary>
-    private const string GhProxyPrefix = "https://gh-proxy.org/";
-
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(10) };
 
     /// <summary>当前程序版本（读取 exe 文件版本，如 0.99.3）。</summary>
@@ -105,19 +102,11 @@ public class UpdateService
 
         try
         {
-            // 候选地址：清单地址 + gh-proxy 加速（GitHub 托管时）
-            var urls = new List<string> { info.Url };
-            if (info.Url.Contains("github.com", StringComparison.OrdinalIgnoreCase))
+            // 只用清单里给出的地址，不做任何镜像替换
+            using (var request = new HttpRequestMessage(HttpMethod.Get, info.Url))
             {
-                urls.Add(GhProxyPrefix + info.Url);
-            }
-
-            var ok = false;
-            foreach (var url in urls)
-            {
-                using var request = new HttpRequestMessage(HttpMethod.Get, url);
                 using var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
-                if (!response.IsSuccessStatusCode) continue;
+                if (!response.IsSuccessStatusCode) return false;
 
                 var total = response.Content.Headers.ContentLength ?? -1;
                 await using var src = await response.Content.ReadAsStreamAsync(ct);
@@ -134,11 +123,7 @@ public class UpdateService
                     progress?.Report((received, total));
                 }
                 await dst.FlushAsync(ct);
-                ok = true;
-                break;
             }
-
-            if (!ok) return false;
 
             // SHA-256 校验
             if (!string.IsNullOrWhiteSpace(info.Sha256))

@@ -23,6 +23,9 @@ crash-reports/
 ThirdParty/
 film_microbiome/
 
+# ---- 文档（仅本地保留，不推送到仓库）----
+docs/
+
 # ---- 工具与 IDE 缓存 ----
 .zcode/
 __pycache__/

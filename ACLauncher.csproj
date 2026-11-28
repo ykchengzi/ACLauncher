@@ -40,11 +40,17 @@
   </PropertyGroup>
 
   <!-- 非 GUI 测试 harness（tools\LaunchTest）是独立的控制台工程，不参与主程序编译 -->
+  <!-- docs\ 仅本地保留，不参与编译，也不复制到输出目录（安装包因此不含文档） -->
   <ItemGroup>
     <Compile Remove="tools\**\*.cs" />
     <Content Remove="tools\**" />
     <None Remove="tools\**" />
     <Page Remove="tools\**" />
+    <Compile Remove="docs\**" />
+    <Content Remove="docs\**" />
+    <None Remove="docs\**" />
+    <Page Remove="docs\**" />
+    <EmbeddedResource Remove="docs\**" />
   </ItemGroup>
 
   <ItemGroup>
