@@ -263,7 +263,7 @@ public class VersionManageViewModel : ViewModelBase
 
         var channel = VersionChannelService.DetectInstalled(versionName, _configService.VersionsDirectory);
         ChannelLabel = VersionChannelService.Label(channel);
-        IconFile = VersionChannelService.IconFile(channel);
+        IconFile = VersionIconService.Resolve(versionName);
         IsBroken = channel == VersionChannel.Broken;
 
         OnPropertyChanged(nameof(HasLoader));

@@ -990,6 +990,12 @@ public class VersionDownloadViewModel : ViewModelBase
             cfg.GameVersion = installedVersion;
             await ConfigService.Instance.SaveAsync(cfg);
 
+            // 整合包里没有图标时，用 Modrinth 项目图标作为该版本的图标
+            if (VersionIconService.GetPackIconPath(installedVersion, versionsDir) is null && project.IconUri is { } iconUri)
+            {
+                await VersionIconService.TryDownloadIconAsync(iconUri, ConfigService.Instance.MinecraftDirectory, installedVersion);
+            }
+
             Status = $"整合包已安装并设为当前版本：{installedVersion}";
             LogService.Instance.Log($"Modrinth 整合包安装完成：{project.DisplayTitle} → {installedVersion}");
             await LoadAsync();

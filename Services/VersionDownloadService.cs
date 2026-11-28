@@ -398,13 +398,9 @@ public class VersionDownloadService
 
         // ---- 5. 通用合并进 .minecraft（兼容 zip 内含 .minecraft 前缀） ----
         MergeIntoMinecraft(extractDir, mcDir);
-
-        // 清理解压临时目录
-        try { Directory.Delete(extractDir, true); } catch { /* 忽略 */ }
-
         LogService.Instance.Log($"版本包解压完成（{method}），文件已合并到 .minecraft。");
 
-        // ---- 5. 自动识别版本并设为当前版本 ----
+        // ---- 6. 自动识别版本并设为当前版本 ----
         var configService = ConfigService.Instance;
         var auto = configService.AutoDetectVersion();
         var config = await configService.LoadAsync();
@@ -414,12 +410,17 @@ public class VersionDownloadService
             await configService.SaveAsync(config);
             // 通用合并的整合包同样写入安装标记（"已安装"判定依据）
             PackInstallService.WritePackMarker(mcDir, auto, version.Title);
+            // 在删除解压临时目录之前提取整合包自带图标
+            VersionIconService.TryCopyPackIcon(extractDir, mcDir, auto);
             LogService.Instance.Log($"已自动识别版本：{auto}");
         }
         else
         {
             LogService.Instance.Log("警告：未在 versions 目录识别到版本，请检查压缩包内容。");
         }
+
+        // 清理解压临时目录
+        try { Directory.Delete(extractDir, true); } catch { /* 忽略 */ }
     }
 
     /// <summary>

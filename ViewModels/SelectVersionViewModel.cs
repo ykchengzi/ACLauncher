@@ -197,7 +197,7 @@ public class SelectVersionViewModel : ViewModelBase
                     MinecraftVersion = _configService.GetVersionMinecraftVersion(id),
                     ModsText = modsCount > 0 ? $"{modsCount} 个模组" : "",
                     ChannelLabel = VersionChannelService.Label(channel),
-                    IconFile = VersionChannelService.IconFile(channel),
+                    IconFile = VersionIconService.Resolve(id),
                     IsBroken = channel == VersionChannel.Broken,
                     Isolated = VersionIsolationService.IsIsolated(id),
                 });

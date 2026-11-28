@@ -152,6 +152,9 @@ public class PackInstallService
         CopyOverrides(packDir, "overrides", mcDir);
         CopyOverrides(packDir, "client-overrides", mcDir);
 
+        // ---- 4. 提取整合包自带图标（版本卡片 / 版本管理页显示） ----
+        VersionIconService.TryCopyPackIcon(packDir, mcDir, versionName);
+
         LogService.Instance.Log("Modrinth 整合包安装完成。");
         WritePackMarker(mcDir, versionName);
         return versionName;

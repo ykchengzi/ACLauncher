@@ -241,6 +241,15 @@ try
         var ver = await LoaderService.Instance.GetLatestLoaderVersionAsync(mcVer, kind);
         Console.WriteLine($"LOADER {kind} for {mcVer}: {ver ?? "<未找到>"}");
     }
+    else if (cmd == "icon")
+    {
+        // 版本图标解析：icon <版本名>
+        var ver = args.Length > 1 ? args[1] : "";
+        var versionsDir = ConfigService.Instance.VersionsDirectory;
+        Console.WriteLine($"LOADER {ConfigService.Instance.GetVersionLoaderLabel(ver)}");
+        Console.WriteLine($"CHANNEL {VersionChannelService.Label(VersionChannelService.DetectInstalled(ver, versionsDir))}");
+        Console.WriteLine($"ICON {VersionIconService.Resolve(ver)}");
+    }
     else if (cmd == "iso")
     {
         // 版本隔离解析：iso <版本名>

@@ -4,24 +4,28 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace ACLauncher.Views;
 
-/// <summary>版本图标加载：把程序目录 Blocks\ 下的方块贴图转成 ImageSource（带缓存）。</summary>
+/// <summary>版本图标加载：支持 Blocks\ 下的贴图文件名，也支持整合包图标的绝对路径。</summary>
 public static class BlockIcons
 {
     private static readonly Dictionary<string, ImageSource> Cache = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>按文件名加载图标；文件不存在时返回 null（界面上不显示图标）。</summary>
-    public static ImageSource? Load(string? fileName)
+    /// <summary>按文件名（Blocks\ 下）或绝对路径加载图标；文件不存在时返回 null。</summary>
+    public static ImageSource? Load(string? source)
     {
-        if (string.IsNullOrWhiteSpace(fileName)) return null;
-        if (Cache.TryGetValue(fileName, out var cached)) return cached;
+        if (string.IsNullOrWhiteSpace(source)) return null;
+
+        var rooted = Path.IsPathRooted(source);
+        var path = rooted ? source : Path.Combine(AppContext.BaseDirectory, "Blocks", source);
+
+        // 整合包图标可能随重新安装被替换，绝对路径不缓存
+        if (!rooted && Cache.TryGetValue(path, out var cached)) return cached;
 
         try
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "Blocks", fileName);
             if (!File.Exists(path)) return null;
 
             var image = new BitmapImage(new Uri(path));
-            Cache[fileName] = image;
+            if (!rooted) Cache[path] = image;
             return image;
         }
         catch
