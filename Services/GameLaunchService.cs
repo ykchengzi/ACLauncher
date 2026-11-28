@@ -554,13 +554,17 @@ public class GameLaunchService
 
             // 进程已拉起，但游戏窗口通常要等 JVM→LWJGL→渲染初始化后才出现。
             // 此时保持启动按钮为灰色、小字提示“窗口即将弹出”，直到真正检测到窗口。
+            // 不设超时：配置差或大型整合包加载可能很久，只要进程活着就一直等，用户可随时取消。
             SetStatus("游戏已启动，游戏窗口即将弹出");
-            var windowState = await WaitForGameWindowAsync(process, ct);
+            var windowState = await GameWindowWatcher.WaitAsync(process, SetStatus, ct);
 
-            // 窗口出现（或等待超时但进程仍在运行）视为成功并显示“强制结束”按钮；
-            // 进程提前退出则失败（保留退出信息）。
-            var started = windowState != GameWindowState.Exited;
-            if (started) IsGameRunning = true;
+            // 检测到窗口才算启动成功；进程在窗口出现前退出则算失败（保留退出信息）。
+            var started = windowState == GameWindowState.Appeared;
+            if (started)
+            {
+                SetStatus("游戏窗口已弹出");
+                IsGameRunning = true;
+            }
             return started;
         }
         catch (OperationCanceledException)
@@ -592,57 +596,6 @@ public class GameLaunchService
             _launchCts?.Dispose();
             _launchCts = null;
         }
-    }
-
-    /// <summary>等待游戏窗口出现的结果。</summary>
-    private enum GameWindowState
-    {
-        /// <summary>已检测到游戏主窗口。</summary>
-        Appeared,
-        /// <summary>窗口出现前进程已退出。</summary>
-        Exited,
-        /// <summary>超过等待时限仍未检测到窗口，但进程还在运行（保守视为已启动）。</summary>
-        Timeout,
-    }
-
-    /// <summary>
-    /// 轮询等待游戏窗口弹出（Java/LWJGL 从进程启动到创建 GLFW 窗口可能需要数十秒到数分钟）。
-    /// 判定依据：进程主窗口句柄变为非零。进程提前退出立即返回 Exited；超时返回 Timeout；取消则抛出。
-    /// </summary>
-    private static async Task<GameWindowState> WaitForGameWindowAsync(Process process, CancellationToken cancellationToken)
-    {
-        const int timeoutSeconds = 240;
-        var deadline = TimeSpan.FromSeconds(timeoutSeconds);
-        var sw = Stopwatch.StartNew();
-
-        while (sw.Elapsed < deadline)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (process.HasExited)
-            {
-                return GameWindowState.Exited;
-            }
-
-            try
-            {
-                process.Refresh();
-                if (process.MainWindowHandle != IntPtr.Zero)
-                {
-                    LogService.Instance.Log("检测到游戏窗口已弹出。");
-                    return GameWindowState.Appeared;
-                }
-            }
-            catch
-            {
-                // 进程可能在本轮退出，下一轮由 HasExited 处理
-            }
-
-            await Task.Delay(1000, cancellationToken);
-        }
-
-        LogService.Instance.Log($"等待游戏窗口超过 {timeoutSeconds} 秒仍未出现，但进程仍在运行，按已启动处理。");
-        return GameWindowState.Timeout;
     }
 
     // =====================================================================

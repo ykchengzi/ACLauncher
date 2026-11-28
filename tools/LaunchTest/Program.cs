@@ -272,6 +272,29 @@ try
         Console.WriteLine($"VERSIONS {pid}: {versions.Count} 个");
         foreach (var v in versions.Take(3)) Console.WriteLine($"  {v.Display}");
     }
+    else if (cmd == "watch")
+    {
+        // 游戏窗口检测：watch <进程PID> [超时秒数]
+        var pid = int.Parse(args[1]);
+        var timeout = args.Length > 2 ? int.Parse(args[2]) : 60;
+        using var target = System.Diagnostics.Process.GetProcessById(pid);
+        Console.WriteLine($"WATCH pid={pid} class-agnostic window detection");
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            var state = await GameWindowWatcher.WaitAsync(target,
+                msg => Console.WriteLine($"[{sw.Elapsed.TotalSeconds:F0}s] {msg}"), cts.Token);
+            Console.WriteLine($"RESULT {state} after {sw.Elapsed.TotalSeconds:F1}s");
+            Environment.ExitCode = state == GameWindowState.Appeared ? 0 : 1;
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine($"RESULT Timeout after {sw.Elapsed.TotalSeconds:F1}s");
+            Environment.ExitCode = 2;
+        }
+    }
     else if (cmd == "count")
     {
         // 启动次数与买正版提醒节点：count <次数>（在 harness 自己的 settings.json 上累加）

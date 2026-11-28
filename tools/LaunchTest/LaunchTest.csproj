@@ -46,6 +46,7 @@
     <Compile Include="$(AclSrc)\Services\VersionParserService.cs" Link="Services\VersionParserService.cs" />
     <Compile Include="$(AclSrc)\Services\PackInstallService.cs" Link="Services\PackInstallService.cs" />
     <Compile Include="$(AclSrc)\Services\GameLaunchService.cs" Link="Services\GameLaunchService.cs" />
+    <Compile Include="$(AclSrc)\Services\GameWindowWatcher.cs" Link="Services\GameWindowWatcher.cs" />
     <Compile Include="$(AclSrc)\Services\JavaRuntimeService.cs" Link="Services\JavaRuntimeService.cs" />
     <Compile Include="$(AclSrc)\Services\ServerStatusService.cs" Link="Services\ServerStatusService.cs" />
     <Compile Include="$(AclSrc)\Services\VanillaSourceService.cs" Link="Services\VanillaSourceService.cs" />
