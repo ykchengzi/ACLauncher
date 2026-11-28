@@ -34,6 +34,13 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        // 离开页面时把待保存的改动立即落盘（防抖窗口内切页会丢设置）
+        ViewModel?.FlushPendingSave();
+    }
+
     /// <summary>
     /// 手动浏览并选择 java.exe / javaw.exe。
     /// FileOpenPicker 需要窗口句柄（WinRT Interop）。

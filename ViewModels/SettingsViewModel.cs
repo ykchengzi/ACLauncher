@@ -131,7 +131,11 @@ public class SettingsViewModel : ViewModelBase
     public string IsolationMode
     {
         get => _isolationMode;
-        set { if (SetProperty(ref _isolationMode, value)) ScheduleAutoSave(); }
+        set
+        {
+            if (!SetProperty(ref _isolationMode, value)) return;
+            SaveIsolationModeImmediately();
+        }
     }
 
     private bool _autoJoinServer = true;
@@ -195,7 +199,41 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>安排一次防抖自动保存（400ms 内的连续改动合并为一次写盘）。</summary>
+    /// <summary>离开设置页时立即落盘，避免防抖窗口内切页导致改动丢失。</summary>
+    public void FlushPendingSave()
+    {
+        if (_suppressAutoSave) return;
+
+        // 有挂起的防抖任务就取消它并立刻写盘
+        if (_autoSaveCts is not null)
+        {
+            try { _autoSaveCts.Cancel(); } catch { /* 已释放 */ }
+        }
+
+        try
+        {
+            var settings = _settingsService.Load();
+            settings.JavaPath = SelectedJava?.Path ?? settings.JavaPath;
+            settings.MinMemoryMB = MinMemoryMB;
+            settings.MaxMemoryMB = MaxMemoryMB;
+            settings.AutoMemory = AutoMemory;
+            settings.Theme = Theme;
+            settings.GamePriority = GamePriority;
+            settings.VersionIsolationMode = VersionIsolationService.ModeFromLabel(IsolationMode);
+            settings.VersionIsolation = null;
+            settings.AutoJoinServer = AutoJoinServer;
+            _settingsService.Save(settings);
+        }
+        catch (Exception ex)
+        {
+            LogService.Instance.Log($"离开设置页时保存失败：{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 安排一次防抖自动保存（400ms 内的连续改动合并为一次写盘）。
+    /// 隔离策略这类“选了就该生效”的选项不走防抖，见 <see cref="SaveIsolationModeImmediately"/>。
+    /// </summary>
     private void ScheduleAutoSave()
     {
         if (_suppressAutoSave) return;
@@ -204,6 +242,28 @@ public class SettingsViewModel : ViewModelBase
         _autoSaveCts = new CancellationTokenSource();
         var token = _autoSaveCts.Token;
         _ = AutoSaveLoopAsync(token);
+    }
+
+    /// <summary>
+    /// 立即保存版本隔离策略。下拉选择是一次性动作，不应等待防抖——
+    /// 否则用户选完马上切页或关窗口，改动会丢失（表现为“选了全部隔离但没生效”）。
+    /// </summary>
+    private void SaveIsolationModeImmediately()
+    {
+        if (_suppressAutoSave) return;
+
+        try
+        {
+            var settings = _settingsService.Load();
+            settings.VersionIsolationMode = VersionIsolationService.ModeFromLabel(IsolationMode);
+            settings.VersionIsolation = null;
+            _settingsService.Save(settings);
+            ShowSavedHint();
+        }
+        catch (Exception ex)
+        {
+            LogService.Instance.Log($"保存版本隔离设置失败：{ex.Message}");
+        }
     }
 
     private async Task AutoSaveLoopAsync(CancellationToken token)
